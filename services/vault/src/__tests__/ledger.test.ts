@@ -192,8 +192,8 @@ describe("AuditLedger.verify()", () => {
     const result = await ledger.verify("org-tampered");
 
     expect(result.valid).toBe(false);
-    // Record 4 (index 3) is the first whose previousHash doesn't match
-    expect(result.broken_at).toBe(chain[3]!.record_id);
+    // Record 3 (index 2) is where the tampered record_hash is detected
+    expect(result.broken_at).toBe(chain[2]!.record_id);
   });
 
   it("returns { valid: true } for an empty chain", async () => {

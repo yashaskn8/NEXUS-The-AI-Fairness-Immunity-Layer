@@ -142,7 +142,7 @@ class ThresholdCalibrator:
             proposed_threshold = proposed_thresholds.get(group, current_threshold)
 
             # Current approval rate at current threshold
-            current_approvals = sum(1 for p in percentiles if p >= current_threshold)
+            _current_approvals = sum(1 for p in percentiles if p >= current_threshold)
             # Projected approval rate at proposed threshold
             proposed_approvals = sum(1 for p in percentiles if p >= proposed_threshold)
 

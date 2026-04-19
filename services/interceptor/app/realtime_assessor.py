@@ -128,7 +128,7 @@ class RealtimeAssessor:
             # Simulate: if we reject one more from this group
             sample_size = max(sum(1 for _ in approval_rates.values()), 10)
             projected_group_rate = max(0, group_rate - (1.0 / sample_size))
-            projected_di = projected_group_rate / ref_rate if ref_rate > 0 else 1.0
+            _projected_di = projected_group_rate / ref_rate if ref_rate > 0 else 1.0
 
             # Step 2c: Check intervention zone
             global_threshold = stats.active_thresholds.get("global", 0.5)
