@@ -483,15 +483,6 @@ This provisions all 8 Cloud Run services, Firestore, Pub/Sub, BigQuery, Memoryst
 ## 📄 License
 MIT License. See [LICENSE](LICENSE) for details.
 
-## 🙏 Acknowledgements
-- Fairness metrics based on: Hardt, Price & Srebro (2016) *"Equality of Opportunity in Supervised Learning"*
-- Reweighing algorithm: Kamiran & Calders (2012)
-- Causal discovery: PC algorithm (Spirtes, Glymour & Scheines, 2000)
-- Regulatory data sourced from EU AI Act, EEOC AI Guidance, WHO Equity Framework, UN SDG Progress Reports
-
-## 🏆 Built For
-Google Solution Challenge 2026 — Addressing SDG 10, SDG 16, SDG 8, SDG 3
-
 <p align="center">
 <em>NEXUS is not a product. It is the infrastructure that makes AI safe for humanity.</em>
 </p>
