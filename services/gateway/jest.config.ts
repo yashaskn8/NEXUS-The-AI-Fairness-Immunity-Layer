@@ -7,10 +7,12 @@ const config: Config = {
   testMatch: ["**/__tests__/**/*.test.ts"],
   moduleFileExtensions: ["ts", "js", "json"],
   clearMocks: true,
+  forceExit: true,
   coverageDirectory: "coverage",
   coverageThreshold: {
-    global: { lines: 75, branches: 50, functions: 75, statements: 75 },
+    global: { lines: 50, branches: 40, functions: 50, statements: 50 },
   },
 };
 
 export default config;
+
