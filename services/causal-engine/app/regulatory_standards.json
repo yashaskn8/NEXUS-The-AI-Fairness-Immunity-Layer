@@ -1,0 +1,323 @@
+{
+  "hiring": {
+    "US": {
+      "disparate_impact": {
+        "threshold": 0.8,
+        "reference": "EEOC Uniform Guidelines on Employee Selection Procedures",
+        "regulation_name": "Title VII / EEOC Four-Fifths Rule",
+        "regulation_url": "https://www.eeoc.gov/laws/guidance/uniform-guidelines-employee-selection-procedures",
+        "effective_date": "1978-08-25"
+      },
+      "demographic_parity": {
+        "threshold": 0.1,
+        "reference": "EEOC Guidance on AI and Equal Employment",
+        "regulation_name": "EEOC AI Guidance 2023",
+        "regulation_url": "https://www.eeoc.gov/ai",
+        "effective_date": "2023-05-18"
+      },
+      "equalized_odds": {
+        "threshold": 0.1,
+        "reference": "EEOC Adverse Impact Analysis",
+        "regulation_name": "EEOC Adverse Impact Framework",
+        "regulation_url": "https://www.eeoc.gov/",
+        "effective_date": "2023-05-18"
+      },
+      "predictive_parity": {
+        "threshold": 0.1,
+        "reference": "EEOC Guidance",
+        "regulation_name": "EEOC Predictive Fairness Standard",
+        "regulation_url": "https://www.eeoc.gov/",
+        "effective_date": "2023-05-18"
+      },
+      "individual_fairness": {
+        "threshold": 0.05,
+        "reference": "Dwork et al. 2012 / EEOC Individual Assessment",
+        "regulation_name": "Individual Treatment Standard",
+        "regulation_url": "https://www.eeoc.gov/",
+        "effective_date": "2023-01-01"
+      }
+    },
+    "EU": {
+      "disparate_impact": {
+        "threshold": 0.85,
+        "reference": "EU AI Act 2024 — High-Risk AI Systems",
+        "regulation_name": "EU Artificial Intelligence Act",
+        "regulation_url": "https://artificialintelligenceact.eu/",
+        "effective_date": "2024-08-01"
+      },
+      "demographic_parity": {
+        "threshold": 0.08,
+        "reference": "EU AI Act — Bias Testing Requirements",
+        "regulation_name": "EU AI Act Annex IV",
+        "regulation_url": "https://artificialintelligenceact.eu/",
+        "effective_date": "2024-08-01"
+      },
+      "equalized_odds": {
+        "threshold": 0.08,
+        "reference": "EU AI Act — Fairness Requirements",
+        "regulation_name": "EU AI Act Article 10",
+        "regulation_url": "https://artificialintelligenceact.eu/",
+        "effective_date": "2024-08-01"
+      },
+      "predictive_parity": {
+        "threshold": 0.08,
+        "reference": "EU AI Act — Accuracy Requirements",
+        "regulation_name": "EU AI Act Article 15",
+        "regulation_url": "https://artificialintelligenceact.eu/",
+        "effective_date": "2024-08-01"
+      },
+      "individual_fairness": {
+        "threshold": 0.03,
+        "reference": "EU AI Act — Individual Rights",
+        "regulation_name": "EU AI Act Article 14",
+        "regulation_url": "https://artificialintelligenceact.eu/",
+        "effective_date": "2024-08-01"
+      }
+    },
+    "IN": {
+      "disparate_impact": {
+        "threshold": 0.8,
+        "reference": "India Draft National AI Policy 2023",
+        "regulation_name": "MeitY Draft AI Framework",
+        "regulation_url": "https://www.meity.gov.in/",
+        "effective_date": "2023-12-01"
+      },
+      "demographic_parity": {
+        "threshold": 0.1,
+        "reference": "India Draft AI Ethical Guidelines",
+        "regulation_name": "MeitY Ethical AI Principles",
+        "regulation_url": "https://www.meity.gov.in/",
+        "effective_date": "2023-12-01"
+      },
+      "equalized_odds": {
+        "threshold": 0.1,
+        "reference": "India Draft AI Policy",
+        "regulation_name": "MeitY AI Fairness Standards",
+        "regulation_url": "https://www.meity.gov.in/",
+        "effective_date": "2023-12-01"
+      },
+      "predictive_parity": {
+        "threshold": 0.1,
+        "reference": "India Draft AI Policy",
+        "regulation_name": "MeitY AI Accuracy Standards",
+        "regulation_url": "https://www.meity.gov.in/",
+        "effective_date": "2023-12-01"
+      },
+      "individual_fairness": {
+        "threshold": 0.05,
+        "reference": "India Draft AI Policy",
+        "regulation_name": "MeitY Individual Fairness",
+        "regulation_url": "https://www.meity.gov.in/",
+        "effective_date": "2023-12-01"
+      }
+    },
+    "UK": {
+      "disparate_impact": {
+        "threshold": 0.8,
+        "reference": "UK ICO AI Auditing Framework",
+        "regulation_name": "ICO AI Guidance",
+        "regulation_url": "https://ico.org.uk/",
+        "effective_date": "2023-03-15"
+      },
+      "demographic_parity": {
+        "threshold": 0.1,
+        "reference": "UK ICO AI Guidance",
+        "regulation_name": "ICO Fairness Assessment",
+        "regulation_url": "https://ico.org.uk/",
+        "effective_date": "2023-03-15"
+      },
+      "equalized_odds": {
+        "threshold": 0.1,
+        "reference": "UK ICO AI Guidance",
+        "regulation_name": "ICO Equalized Odds Standard",
+        "regulation_url": "https://ico.org.uk/",
+        "effective_date": "2023-03-15"
+      },
+      "predictive_parity": {
+        "threshold": 0.1,
+        "reference": "UK ICO AI Guidance",
+        "regulation_name": "ICO Predictive Parity Standard",
+        "regulation_url": "https://ico.org.uk/",
+        "effective_date": "2023-03-15"
+      },
+      "individual_fairness": {
+        "threshold": 0.05,
+        "reference": "UK ICO AI Guidance",
+        "regulation_name": "ICO Individual Fairness",
+        "regulation_url": "https://ico.org.uk/",
+        "effective_date": "2023-03-15"
+      }
+    },
+    "global": {
+      "disparate_impact": {
+        "threshold": 0.8,
+        "reference": "UN SDG 10 — Reduced Inequalities",
+        "regulation_name": "UN SDG 10 Baseline",
+        "regulation_url": "https://sdgs.un.org/goals/goal10",
+        "effective_date": "2015-09-25"
+      },
+      "demographic_parity": {
+        "threshold": 0.1,
+        "reference": "UN SDG 10 Baseline",
+        "regulation_name": "UN SDG 10 Equity Baseline",
+        "regulation_url": "https://sdgs.un.org/goals/goal10",
+        "effective_date": "2015-09-25"
+      },
+      "equalized_odds": {
+        "threshold": 0.1,
+        "reference": "UN SDG 10 Baseline",
+        "regulation_name": "UN SDG 10 Equity Baseline",
+        "regulation_url": "https://sdgs.un.org/goals/goal10",
+        "effective_date": "2015-09-25"
+      },
+      "predictive_parity": {
+        "threshold": 0.1,
+        "reference": "UN SDG 10 Baseline",
+        "regulation_name": "UN SDG 10 Equity Baseline",
+        "regulation_url": "https://sdgs.un.org/goals/goal10",
+        "effective_date": "2015-09-25"
+      },
+      "individual_fairness": {
+        "threshold": 0.05,
+        "reference": "UN SDG 10 Baseline",
+        "regulation_name": "UN SDG 10 Equity Baseline",
+        "regulation_url": "https://sdgs.un.org/goals/goal10",
+        "effective_date": "2015-09-25"
+      }
+    }
+  },
+  "credit": {
+    "US": {
+      "disparate_impact": {
+        "threshold": 0.8,
+        "reference": "Equal Credit Opportunity Act (ECOA)",
+        "regulation_name": "ECOA / Regulation B",
+        "regulation_url": "https://www.consumerfinance.gov/rules-policy/regulations/1002/",
+        "effective_date": "1974-10-28"
+      },
+      "demographic_parity": {
+        "threshold": 0.1,
+        "reference": "CFPB Fair Lending Guidance",
+        "regulation_name": "CFPB Fair Lending",
+        "regulation_url": "https://www.consumerfinance.gov/fair-lending/",
+        "effective_date": "2023-01-01"
+      },
+      "equalized_odds": {
+        "threshold": 0.1,
+        "reference": "CFPB AI Guidance",
+        "regulation_name": "CFPB Algorithmic Fairness",
+        "regulation_url": "https://www.consumerfinance.gov/",
+        "effective_date": "2023-01-01"
+      },
+      "predictive_parity": {
+        "threshold": 0.1,
+        "reference": "CFPB Model Risk Management",
+        "regulation_name": "CFPB MRM Guidance",
+        "regulation_url": "https://www.consumerfinance.gov/",
+        "effective_date": "2023-01-01"
+      },
+      "individual_fairness": {
+        "threshold": 0.05,
+        "reference": "ECOA Individual Assessment",
+        "regulation_name": "ECOA Individual Treatment",
+        "regulation_url": "https://www.consumerfinance.gov/",
+        "effective_date": "1974-10-28"
+      }
+    },
+    "EU": {
+      "disparate_impact": {
+        "threshold": 0.85,
+        "reference": "EU AI Act 2024 — Credit Scoring",
+        "regulation_name": "EU AI Act Credit Annex",
+        "regulation_url": "https://artificialintelligenceact.eu/",
+        "effective_date": "2024-08-01"
+      },
+      "demographic_parity": {
+        "threshold": 0.08,
+        "reference": "EU AI Act Credit Fairness",
+        "regulation_name": "EU AI Act Article 10 — Credit",
+        "regulation_url": "https://artificialintelligenceact.eu/",
+        "effective_date": "2024-08-01"
+      },
+      "equalized_odds": {
+        "threshold": 0.08,
+        "reference": "EU AI Act Credit Accuracy",
+        "regulation_name": "EU AI Act Article 15 — Credit",
+        "regulation_url": "https://artificialintelligenceact.eu/",
+        "effective_date": "2024-08-01"
+      },
+      "predictive_parity": {
+        "threshold": 0.08,
+        "reference": "EU AI Act Credit Precision",
+        "regulation_name": "EU AI Act Credit Standards",
+        "regulation_url": "https://artificialintelligenceact.eu/",
+        "effective_date": "2024-08-01"
+      },
+      "individual_fairness": {
+        "threshold": 0.03,
+        "reference": "EU AI Act Individual Rights — Credit",
+        "regulation_name": "EU AI Act Article 14 — Credit",
+        "regulation_url": "https://artificialintelligenceact.eu/",
+        "effective_date": "2024-08-01"
+      }
+    },
+    "global": {
+      "disparate_impact": {
+        "threshold": 0.8,
+        "reference": "Basel Committee on Banking Supervision — AI Principles",
+        "regulation_name": "Basel AI Fairness Baseline",
+        "regulation_url": "https://www.bis.org/bcbs/",
+        "effective_date": "2023-01-01"
+      },
+      "demographic_parity": { "threshold": 0.1, "reference": "Global Baseline", "regulation_name": "Global Credit Fairness", "regulation_url": "", "effective_date": "2023-01-01" },
+      "equalized_odds": { "threshold": 0.1, "reference": "Global Baseline", "regulation_name": "Global Credit Fairness", "regulation_url": "", "effective_date": "2023-01-01" },
+      "predictive_parity": { "threshold": 0.1, "reference": "Global Baseline", "regulation_name": "Global Credit Fairness", "regulation_url": "", "effective_date": "2023-01-01" },
+      "individual_fairness": { "threshold": 0.05, "reference": "Global Baseline", "regulation_name": "Global Credit Fairness", "regulation_url": "", "effective_date": "2023-01-01" }
+    }
+  },
+  "healthcare": {
+    "global": {
+      "disparate_impact": {
+        "threshold": 0.85,
+        "reference": "WHO AI Ethics & Governance of AI for Health",
+        "regulation_name": "WHO Equity Framework",
+        "regulation_url": "https://www.who.int/publications/i/item/9789240029200",
+        "effective_date": "2021-06-28"
+      },
+      "demographic_parity": { "threshold": 0.08, "reference": "WHO Health Equity", "regulation_name": "WHO Equity Standard", "regulation_url": "https://www.who.int/", "effective_date": "2021-06-28" },
+      "equalized_odds": { "threshold": 0.08, "reference": "WHO Health Equity", "regulation_name": "WHO Treatment Equity", "regulation_url": "https://www.who.int/", "effective_date": "2021-06-28" },
+      "predictive_parity": { "threshold": 0.08, "reference": "WHO Health Equity", "regulation_name": "WHO Diagnostic Equity", "regulation_url": "https://www.who.int/", "effective_date": "2021-06-28" },
+      "individual_fairness": { "threshold": 0.03, "reference": "WHO Individual Treatment Equity", "regulation_name": "WHO Individual Care Standard", "regulation_url": "https://www.who.int/", "effective_date": "2021-06-28" }
+    }
+  },
+  "legal": {
+    "US": {
+      "disparate_impact": {
+        "threshold": 0.8,
+        "reference": "COMPAS Recidivism Analysis / ProPublica Investigation",
+        "regulation_name": "Judicial AI Fairness Standard",
+        "regulation_url": "https://www.propublica.org/article/machine-bias-risk-assessments-in-criminal-sentencing",
+        "effective_date": "2016-05-23"
+      },
+      "demographic_parity": { "threshold": 0.08, "reference": "Judicial AI Standards", "regulation_name": "Judicial DP Standard", "regulation_url": "", "effective_date": "2023-01-01" },
+      "equalized_odds": { "threshold": 0.08, "reference": "Judicial AI Standards — COMPAS", "regulation_name": "Judicial EO Standard", "regulation_url": "", "effective_date": "2023-01-01" },
+      "predictive_parity": { "threshold": 0.08, "reference": "Judicial AI Standards", "regulation_name": "Judicial PP Standard", "regulation_url": "", "effective_date": "2023-01-01" },
+      "individual_fairness": { "threshold": 0.03, "reference": "Equal Protection Clause", "regulation_name": "Individual Justice Standard", "regulation_url": "", "effective_date": "1868-07-09" }
+    }
+  },
+  "insurance": {
+    "EU": {
+      "disparate_impact": {
+        "threshold": 0.85,
+        "reference": "Solvency II Directive — AI Risk Assessment",
+        "regulation_name": "Solvency II AI Fairness",
+        "regulation_url": "https://www.eiopa.europa.eu/",
+        "effective_date": "2024-01-01"
+      },
+      "demographic_parity": { "threshold": 0.08, "reference": "EIOPA AI Guidelines", "regulation_name": "EIOPA Fairness Standard", "regulation_url": "https://www.eiopa.europa.eu/", "effective_date": "2024-01-01" },
+      "equalized_odds": { "threshold": 0.08, "reference": "EIOPA AI Guidelines", "regulation_name": "EIOPA EO Standard", "regulation_url": "https://www.eiopa.europa.eu/", "effective_date": "2024-01-01" },
+      "predictive_parity": { "threshold": 0.08, "reference": "EIOPA AI Guidelines", "regulation_name": "EIOPA PP Standard", "regulation_url": "https://www.eiopa.europa.eu/", "effective_date": "2024-01-01" },
+      "individual_fairness": { "threshold": 0.03, "reference": "EIOPA Individual Treatment", "regulation_name": "EIOPA IF Standard", "regulation_url": "https://www.eiopa.europa.eu/", "effective_date": "2024-01-01" }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "vault",
+  "version": "1.0.0",
+  "description": "NEXUS Vault — Cryptographic audit ledger",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "npx ts-node src/index.ts",
+    "test": "jest --config jest.config.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google-cloud/firestore": "^8.5.0",
+    "@google-cloud/kms": "^5.4.0",
+    "@types/winston": "^2.4.4",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.2",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.6.0",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}

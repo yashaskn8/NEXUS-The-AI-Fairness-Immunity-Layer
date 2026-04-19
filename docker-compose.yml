@@ -1,0 +1,247 @@
+version: "3.9"
+
+networks:
+  nexus-local-net:
+    driver: bridge
+
+volumes:
+  redis-data:
+
+services:
+  # ═══════════════════════════════════
+  # Infrastructure
+  # ═══════════════════════════════════
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - nexus-local-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  firestore-emulator:
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:emulators
+    command: >
+      gcloud emulators firestore start --host-port=0.0.0.0:9090
+    ports:
+      - "9090:9090"
+    networks:
+      - nexus-local-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pubsub-emulator:
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:emulators
+    command: >
+      gcloud beta emulators pubsub start --host-port=0.0.0.0:8088
+    ports:
+      - "8088:8088"
+    networks:
+      - nexus-local-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ═══════════════════════════════════
+  # NEXUS Services
+  # ═══════════════════════════════════
+
+  nexus-gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      - NEXUS_ENV=development
+      - FIRESTORE_EMULATOR_HOST=firestore-emulator:9090
+      - PUBSUB_EMULATOR_HOST=pubsub-emulator:8088
+      - REDIS_HOST=redis
+      - INTERCEPTOR_URL=http://nexus-interceptor:8081
+      - REMEDIATION_URL=http://nexus-remediation:8085
+      - CAUSAL_ENGINE_URL=http://nexus-causal-engine:8082
+    depends_on:
+      redis:
+        condition: service_healthy
+      firestore-emulator:
+        condition: service_healthy
+    networks:
+      - nexus-local-net
+
+  nexus-interceptor:
+    build:
+      context: ./services/interceptor
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    env_file: .env
+    environment:
+      - NEXUS_ENV=development
+      - REDIS_HOST=redis
+      - FIRESTORE_EMULATOR_HOST=firestore-emulator:9090
+      - PYTHONPATH=/app:/shared/python
+    volumes:
+      - ./services/interceptor:/app
+      - ./shared/python:/shared/python
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - nexus-local-net
+
+  nexus-causal-engine:
+    build:
+      context: ./services/causal-engine
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    env_file: .env
+    environment:
+      - NEXUS_ENV=development
+      - FIRESTORE_EMULATOR_HOST=firestore-emulator:9090
+      - PUBSUB_EMULATOR_HOST=pubsub-emulator:8088
+      - REDIS_HOST=redis
+      - PYTHONPATH=/app:/shared/python
+    volumes:
+      - ./services/causal-engine:/app
+      - ./shared/python:/shared/python
+    depends_on:
+      redis:
+        condition: service_healthy
+      firestore-emulator:
+        condition: service_healthy
+    networks:
+      - nexus-local-net
+
+  nexus-federated-aggregator:
+    build:
+      context: ./services/federated-aggregator
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    env_file: .env
+    environment:
+      - NEXUS_ENV=development
+      - FIRESTORE_EMULATOR_HOST=firestore-emulator:9090
+      - PYTHONPATH=/app:/shared/python
+    volumes:
+      - ./services/federated-aggregator:/app
+      - ./shared/python:/shared/python
+    depends_on:
+      firestore-emulator:
+        condition: service_healthy
+    networks:
+      - nexus-local-net
+
+  nexus-prediction-engine:
+    build:
+      context: ./services/prediction-engine
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    env_file: .env
+    environment:
+      - NEXUS_ENV=development
+      - FIRESTORE_EMULATOR_HOST=firestore-emulator:9090
+      - PYTHONPATH=/app:/shared/python
+    volumes:
+      - ./services/prediction-engine:/app
+      - ./shared/python:/shared/python
+    depends_on:
+      firestore-emulator:
+        condition: service_healthy
+    networks:
+      - nexus-local-net
+
+  nexus-remediation:
+    build:
+      context: ./services/remediation
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    env_file: .env
+    environment:
+      - NEXUS_ENV=development
+      - FIRESTORE_EMULATOR_HOST=firestore-emulator:9090
+      - PYTHONPATH=/app:/shared/python
+    volumes:
+      - ./services/remediation:/app
+      - ./shared/python:/shared/python
+    depends_on:
+      firestore-emulator:
+        condition: service_healthy
+    networks:
+      - nexus-local-net
+
+  nexus-vault:
+    build:
+      context: ./services/vault
+      dockerfile: Dockerfile
+    ports:
+      - "8086:8086"
+    env_file: .env
+    environment:
+      - NEXUS_ENV=development
+      - FIRESTORE_EMULATOR_HOST=firestore-emulator:9090
+    depends_on:
+      firestore-emulator:
+        condition: service_healthy
+    networks:
+      - nexus-local-net
+
+  nexus-regulatory:
+    build:
+      context: ./services/regulatory-intelligence
+      dockerfile: Dockerfile
+    ports:
+      - "8087:8087"
+    env_file: .env
+    environment:
+      - NEXUS_ENV=development
+      - FIRESTORE_EMULATOR_HOST=firestore-emulator:9090
+      - PYTHONPATH=/app:/shared/python
+    volumes:
+      - ./services/regulatory-intelligence:/app
+      - ./shared/python:/shared/python
+    depends_on:
+      firestore-emulator:
+        condition: service_healthy
+    networks:
+      - nexus-local-net
+
+  nexus-web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    env_file: .env
+    environment:
+      - NEXUS_ENV=development
+      - VITE_API_URL=http://localhost:8080
+      - VITE_FIREBASE_API_KEY=${FIREBASE_API_KEY}
+      - VITE_FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - VITE_FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN:-nexus-platform.firebaseapp.com}
+      - VITE_FIREBASE_MESSAGING_SENDER_ID=${FIREBASE_MESSAGING_SENDER_ID:-}
+      - VITE_FIREBASE_APP_ID=${FIREBASE_APP_ID:-}
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+    depends_on:
+      nexus-gateway:
+        condition: service_started
+    networks:
+      - nexus-local-net

@@ -1,0 +1,5 @@
+httpx>=0.25.0
+structlog>=23.1.0
+pydantic>=2.5.0
+google-cloud-firestore>=2.13.0
+google-cloud-pubsub>=2.18.0

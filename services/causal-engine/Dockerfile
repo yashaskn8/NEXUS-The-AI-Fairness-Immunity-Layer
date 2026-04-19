@@ -1,0 +1,16 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app/ app/
+COPY ../shared/python/nexus_types/ /shared/python/nexus_types/
+
+ENV PYTHONPATH=/app:/shared/python
+ENV PORT=8082
+
+EXPOSE 8082
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8082"]

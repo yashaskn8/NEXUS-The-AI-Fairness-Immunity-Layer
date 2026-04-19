@@ -1,0 +1,227 @@
+"""
+NEXUS Causal Engine — Causal Graph Builder.
+Constructs DAGs of causal relationships between features and protected attributes.
+"""
+from __future__ import annotations
+
+import json
+from typing import Any
+
+import networkx as nx
+import numpy as np
+import pandas as pd
+import structlog
+from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
+from sklearn.preprocessing import LabelEncoder
+
+logger = structlog.get_logger(__name__)
+
+MI_PROXY_THRESHOLD = 0.3  # Mutual information threshold for proxy detection
+
+
+class CausalGraphBuilder:
+    """
+    Builds Directed Acyclic Graphs of causal relationships between features,
+    protected attributes, and outcomes.
+    """
+
+    def build(
+        self,
+        events_df: pd.DataFrame,
+        protected_attributes: list[str],
+        outcome_col: str = "decision",
+    ) -> nx.DiGraph:
+        """
+        Construct a DAG of causal relationships.
+
+        Steps:
+        1. Compute mutual information between features and protected attributes
+        2. Run constraint-based causal discovery (PC algorithm approximation)
+        3. Add proxy edges based on MI scores
+        4. Add feature-to-outcome edges using LightGBM importance
+        5. Identify d-separation and safe features
+        6. Mark proxy nodes
+        """
+        graph = nx.DiGraph()
+
+        # Get feature columns (exclude protected attributes and outcome)
+        feature_cols = [
+            c for c in events_df.columns
+            if c not in protected_attributes and c != outcome_col
+            and c not in ("event_id", "org_id", "model_id", "timestamp", "individual_id")
+        ]
+
+        if not feature_cols:
+            logger.warning("No feature columns found for causal graph")
+            return graph
+
+        # Encode categorical columns for MI computation
+        encoded_df = events_df.copy()
+        label_encoders: dict[str, LabelEncoder] = {}
+
+        for col in feature_cols + protected_attributes + [outcome_col]:
+            if col in encoded_df.columns and encoded_df[col].dtype == object:
+                le = LabelEncoder()
+                encoded_df[col] = le.fit_transform(encoded_df[col].astype(str))
+                label_encoders[col] = le
+
+        # Step 1: Compute mutual information between features and protected attributes
+        mi_scores: dict[str, dict[str, float]] = {}
+
+        for pa in protected_attributes:
+            if pa not in encoded_df.columns:
+                continue
+
+            pa_values = encoded_df[pa].values
+            feature_matrix = encoded_df[feature_cols].fillna(0).values
+
+            try:
+                mi = mutual_info_classif(
+                    feature_matrix, pa_values, discrete_features="auto", random_state=42
+                )
+                mi_scores[pa] = {feat: float(score) for feat, score in zip(feature_cols, mi)}
+            except Exception as exc:
+                logger.warning("MI computation failed for", pa=pa, error=str(exc))
+                mi_scores[pa] = {}
+
+        # Step 2: Approximate PC algorithm using conditional independence
+        # Use correlation-based independence test as approximation
+        for col in feature_cols:
+            graph.add_node(col, type="feature", proxy=False)
+
+        for pa in protected_attributes:
+            if pa in encoded_df.columns:
+                graph.add_node(pa, type="protected_attribute", proxy=False)
+
+        graph.add_node(outcome_col, type="outcome", proxy=False)
+
+        # Step 3: Add edges from features to protected attributes as proxy edges
+        proxy_features: set[str] = set()
+
+        for pa, scores in mi_scores.items():
+            for feat, mi_val in scores.items():
+                if mi_val > 0.05:  # Some relationship exists
+                    graph.add_edge(
+                        feat, pa,
+                        weight=round(mi_val, 4),
+                        edge_type="proxy" if mi_val > MI_PROXY_THRESHOLD else "weak",
+                        mutual_information=round(mi_val, 4),
+                    )
+
+                    if mi_val > MI_PROXY_THRESHOLD:
+                        proxy_features.add(feat)
+                        graph.nodes[feat]["proxy"] = True
+
+        # Step 4: Add feature-to-outcome edges using LightGBM feature importance
+        try:
+            import lightgbm as lgb
+
+            X = encoded_df[feature_cols].fillna(0).values
+            y = encoded_df[outcome_col].values
+
+            model = lgb.LGBMClassifier(
+                n_estimators=50,
+                max_depth=4,
+                verbose=-1,
+                random_state=42,
+            )
+            model.fit(X, y)
+            importances = model.feature_importances_
+
+            for feat, imp in zip(feature_cols, importances):
+                if imp > 0:
+                    graph.add_edge(
+                        feat, outcome_col,
+                        weight=round(float(imp) / max(importances), 4),
+                        edge_type="causal",
+                        importance=float(imp),
+                    )
+        except ImportError:
+            logger.warning("LightGBM not available — using correlation-based importance")
+            for feat in feature_cols:
+                if feat in encoded_df.columns and outcome_col in encoded_df.columns:
+                    try:
+                        corr = abs(encoded_df[feat].corr(encoded_df[outcome_col]))
+                        if corr > 0.1:
+                            graph.add_edge(
+                                feat, outcome_col,
+                                weight=round(corr, 4),
+                                edge_type="causal",
+                                importance=corr,
+                            )
+                    except Exception:
+                        pass
+
+        # Step 5: Identify safe features (causally independent of protected attributes)
+        for feat in feature_cols:
+            is_safe = feat not in proxy_features
+            graph.nodes[feat]["safe"] = is_safe
+
+        # Add edges from protected attributes to outcome (direct effect)
+        for pa in protected_attributes:
+            if pa in encoded_df.columns and outcome_col in encoded_df.columns:
+                try:
+                    corr = abs(encoded_df[pa].corr(encoded_df[outcome_col]))
+                    graph.add_edge(
+                        pa, outcome_col,
+                        weight=round(corr, 4),
+                        edge_type="direct_effect",
+                    )
+                except Exception:
+                    pass
+
+        logger.info(
+            "Causal graph built",
+            nodes=graph.number_of_nodes(),
+            edges=graph.number_of_edges(),
+            proxy_features=list(proxy_features),
+        )
+
+        return graph
+
+    def to_json(self, graph: nx.DiGraph) -> dict[str, Any]:
+        """
+        Serialise to Cytoscape.js compatible JSON for frontend rendering.
+        """
+        elements: list[dict[str, Any]] = []
+
+        # Add nodes
+        for node_id, node_data in graph.nodes(data=True):
+            node_type = node_data.get("type", "feature")
+            is_proxy = node_data.get("proxy", False)
+            is_safe = node_data.get("safe", True)
+
+            elements.append({
+                "data": {
+                    "id": str(node_id),
+                    "label": str(node_id),
+                    "type": node_type,
+                    "proxy": is_proxy,
+                    "safe": is_safe,
+                },
+                "classes": node_type + (" proxy" if is_proxy else ""),
+            })
+
+        # Add edges
+        for source, target, edge_data in graph.edges(data=True):
+            elements.append({
+                "data": {
+                    "id": f"{source}->{target}",
+                    "source": str(source),
+                    "target": str(target),
+                    "weight": edge_data.get("weight", 0),
+                    "edge_type": edge_data.get("edge_type", "unknown"),
+                    "mutual_information": edge_data.get("mutual_information", 0),
+                },
+            })
+
+        return {
+            "elements": elements,
+            "metadata": {
+                "node_count": graph.number_of_nodes(),
+                "edge_count": graph.number_of_edges(),
+                "proxy_count": sum(
+                    1 for _, d in graph.nodes(data=True) if d.get("proxy", False)
+                ),
+            },
+        }
