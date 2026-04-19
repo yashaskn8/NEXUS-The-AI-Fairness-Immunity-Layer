@@ -154,8 +154,6 @@ async def get_metrics(org_id: str, model_id: str):
     Also writes stats and projections to Redis for simulation consumption.
     This is Contract 2 of the simulation correctness contracts.
     """
-    import math
-
     metrics: list[dict] = []
     approval_rates: dict[str, float] = {}
 
@@ -281,8 +279,6 @@ class SimulateRequest(BaseModel):
 @app.post("/simulate")
 async def simulate_counterfactual(req: SimulateRequest):
     """Run counterfactual simulation using surrogate model."""
-    import numpy as np
-
     results = []
     base_features = req.features
 

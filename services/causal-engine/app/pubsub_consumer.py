@@ -14,7 +14,7 @@ from typing import Any
 import structlog
 from google.cloud import firestore, pubsub_v1
 
-from nexus_types.models import DecisionEvent, FairnessMetric, Severity
+from nexus_types.models import FairnessMetric
 from app.fairness_computer import FairnessComputer
 from app.shap_analyzer import SHAPAnalyzer
 

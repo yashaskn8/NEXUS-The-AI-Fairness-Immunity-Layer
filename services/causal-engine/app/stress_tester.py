@@ -4,7 +4,6 @@ Generates synthetic data, tests model fairness, and produces deployment recommen
 """
 from __future__ import annotations
 
-import os
 from typing import Any
 
 import numpy as np

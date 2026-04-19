@@ -4,14 +4,12 @@ Constructs DAGs of causal relationships between features and protected attribute
 """
 from __future__ import annotations
 
-import json
 from typing import Any
 
 import networkx as nx
-import numpy as np
 import pandas as pd
 import structlog
-from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
+from sklearn.feature_selection import mutual_info_classif
 from sklearn.preprocessing import LabelEncoder
 
 logger = structlog.get_logger(__name__)
