@@ -9,7 +9,7 @@ import time
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+
 
 import structlog
 import uvicorn
@@ -366,7 +366,7 @@ async def generate_report(req: ReportRequest):
             .get()
         )
 
-        from nexus_types.models import FairnessMetric, Severity, MetricName
+        from nexus_types.models import FairnessMetric
 
         metrics = []
         for doc in metrics_snap:

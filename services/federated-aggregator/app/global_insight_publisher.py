@@ -5,7 +5,7 @@ and regulatory alerts to all participating orgs after each aggregation round.
 from __future__ import annotations
 
 import os
-import time
+
 from typing import Any
 
 import structlog
@@ -87,19 +87,19 @@ class GlobalInsightPublisher:
                 insight_type="emerging_pattern",
                 headline="Emerging Bias Pattern Detected",
                 summary=(
-                    f"47% of hiring models on the network developed age-proxy bias "
-                    f"within 6 months of deployment."
+                    "47% of hiring models on the network developed age-proxy bias "
+                    "within 6 months of deployment."
                 ),
                 full_narrative=(
-                    f"NEXUS has detected an emerging pattern across the federated network: "
-                    f"47% of hiring models developed age-proxy bias within the first 6 months "
-                    f"of deployment. The most common proxy features are 'years_of_experience' and "
-                    f"'graduation_year', which correlate strongly with age group.\n\n"
-                    f"If your model uses similar features, we recommend enabling the NEXUS "
-                    f"interceptor in monitoring mode to detect early signs of age-proxy drift. "
-                    f"The causal engine can identify which features are acting as proxies.\n\n"
-                    f"This insight is derived from anonymised, differentially private aggregations "
-                    f"and does not reveal any individual organisation's data."
+                    "NEXUS has detected an emerging pattern across the federated network: "
+                    "47% of hiring models developed age-proxy bias within the first 6 months "
+                    "of deployment. The most common proxy features are 'years_of_experience' and "
+                    "'graduation_year', which correlate strongly with age group.\n\n"
+                    "If your model uses similar features, we recommend enabling the NEXUS "
+                    "interceptor in monitoring mode to detect early signs of age-proxy drift. "
+                    "The causal engine can identify which features are acting as proxies.\n\n"
+                    "This insight is derived from anonymised, differentially private aggregations "
+                    "and does not reveal any individual organisation's data."
                 ),
                 severity=Severity.MEDIUM,
                 data={

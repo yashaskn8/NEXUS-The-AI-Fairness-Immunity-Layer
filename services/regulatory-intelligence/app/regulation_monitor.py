@@ -7,13 +7,13 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import time
+
 from typing import Any
 
 import httpx
 import structlog
 
-from nexus_types.models import RegulatoryUpdate, Severity
+from nexus_types.models import RegulatoryUpdate
 
 logger = structlog.get_logger(__name__)
 

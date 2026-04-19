@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
+
 import structlog
 
 from nexus_types.models import (

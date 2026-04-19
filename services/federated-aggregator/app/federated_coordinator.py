@@ -5,7 +5,7 @@ Each org contributes local gradient updates without sharing raw data.
 from __future__ import annotations
 
 import math
-import os
+
 import time
 import uuid
 from typing import Any
