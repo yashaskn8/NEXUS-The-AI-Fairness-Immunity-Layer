@@ -183,7 +183,12 @@ class SHAPResult(BaseModel):
     model_id: str
     top_global_features: list[tuple[str, float]] = Field(default_factory=list)
     group_divergent_features: list[str] = Field(default_factory=list)
-    proxy_shap_contribution: float = 0.0
+    proxy_shap_contribution: Optional[float] = 0.0
+    # Bootstrap confidence intervals (5th, 95th percentile)
+    shap_ci_lower: dict[str, float] = Field(default_factory=dict)
+    shap_ci_upper: dict[str, float] = Field(default_factory=dict)
+    # "high" (CI width < 0.05), "medium" (0.05-0.15), "low" (> 0.15)
+    result_stability: str = "high"
 
 
 class SingleExplanation(BaseModel):

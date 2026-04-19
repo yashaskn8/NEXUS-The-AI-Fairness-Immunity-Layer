@@ -41,13 +41,18 @@ class FederatedCoordinator:
         self.round_id: str = str(uuid.uuid4())[:8]
         self.participating_orgs: set[str] = set()
         self.round_history: list[dict[str, Any]] = []
+        # Cumulative privacy budget tracking per org per round
+        self._cumulative_epsilon: dict[str, float] = {}
+
+    # Maximum total epsilon an org can spend per aggregation round
+    ROUND_BUDGET_LIMIT = 5.0
 
     def register_gradient(self, gradient: FederatedGradient) -> dict[str, Any]:
         """
         Accept a differentially private gradient update from an org.
-        Validate: epsilon ≤ 1.0 (refuse updates that spent too much privacy budget).
+        Validate: epsilon ≤ 1.0 per-gradient AND cumulative ≤ 5.0 per org per round.
         """
-        # Validate privacy budget
+        # Per-gradient privacy budget validation
         if gradient.epsilon_spent > MAX_EPSILON:
             logger.warn(
                 "Rejecting gradient — epsilon too high",
@@ -60,6 +65,26 @@ class FederatedCoordinator:
                 "reason": f"Privacy budget exceeded: epsilon={gradient.epsilon_spent} > max={MAX_EPSILON}",
             }
 
+        # Cumulative budget enforcement (prevents unbounded budget drain)
+        budget_key = f"{gradient.org_id}:{self.round_id}"
+        cumulative = self._cumulative_epsilon.get(budget_key, 0.0)
+        cumulative += gradient.epsilon_spent
+        if cumulative > self.ROUND_BUDGET_LIMIT:
+            logger.warn(
+                "Rejecting gradient — cumulative budget exceeded",
+                org_id=gradient.org_id,
+                cumulative_epsilon=cumulative,
+                round_budget_limit=self.ROUND_BUDGET_LIMIT,
+            )
+            return {
+                "accepted": False,
+                "reason": (
+                    f"Cumulative privacy budget exceeded: "
+                    f"ε_total={cumulative:.2f} > limit={self.ROUND_BUDGET_LIMIT}"
+                ),
+            }
+        self._cumulative_epsilon[budget_key] = cumulative
+
         # Store gradient
         self.round_gradients[gradient.org_id] = gradient
         self.participating_orgs.add(gradient.org_id)
@@ -70,6 +95,7 @@ class FederatedCoordinator:
             round_id=self.round_id,
             participants=len(self.round_gradients),
             min_required=MIN_PARTICIPANTS,
+            cumulative_epsilon=round(cumulative, 4),
         )
 
         result: dict[str, Any] = {
@@ -77,6 +103,7 @@ class FederatedCoordinator:
             "round_id": self.round_id,
             "participants": len(self.round_gradients),
             "aggregation_triggered": False,
+            "cumulative_epsilon": round(cumulative, 4),
         }
 
         # Trigger aggregation if enough participants

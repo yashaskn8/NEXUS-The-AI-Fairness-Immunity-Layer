@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-04-19T16:32:48.196460+00:00",
+  "gateway_url": "http://localhost:8080",
+  "dataset": {
+    "total_decisions": 200,
+    "hiring": 75,
+    "credit": 75,
+    "healthcare": 50,
+    "genuinely_fair": 40,
+    "direct_bias_injected": 87,
+    "proxy_bias_injected": 87,
+    "intersectional_bias_injected": 29
+  },
+  "bias_detection": {
+    "direct": {
+      "detected": 0,
+      "total": 87,
+      "rate": 0.0
+    },
+    "proxy": {
+      "detected": 0,
+      "total": 87,
+      "rate": 0.0
+    },
+    "intersectional": {
+      "detected": 0,
+      "total": 29,
+      "rate": 0.0
+    }
+  },
+  "fairness_metrics": {
+    "pre_nexus": {
+      "disparate_impact_female_vs_male": 0.3425,
+      "demographic_parity_female_gap": -0.3125,
+      "model_accuracy": 0.855
+    },
+    "post_nexus": {
+      "disparate_impact_female_vs_male": 0.3425,
+      "demographic_parity_female_gap": -0.3125,
+      "model_accuracy": 0.855,
+      "accuracy_drop": 0.0
+    }
+  },
+  "correction_stats": {
+    "total_intercepted": 0,
+    "false_negatives": 127,
+    "false_positives": 0,
+    "false_positive_rate": 0.0
+  },
+  "performance": {
+    "avg_latency_ms": 4093.3,
+    "p95_latency_ms": 4119.36,
+    "p99_latency_ms": 4126.29,
+    "concurrent_workers": 50
+  },
+  "verdict": "FAIL"
+}

@@ -140,11 +140,61 @@ class SHAPAnalyzer:
 
             proxy_shap_pct = proxy_contribution / total_shap if total_shap > 0 else 0.0
 
+            # Step 6: Bootstrap Confidence Intervals & Stability
+            shap_ci_lower: dict[str, float] = {}
+            shap_ci_upper: dict[str, float] = {}
+            result_stability = "high"
+            max_width = 0.0
+            
+            n_samples = len(X)
+            if n_samples >= 10:
+                n_boot = 50
+                subsample_size = max(5, int(n_samples * 0.5))
+                feature_means = {feat: [] for feat in feature_cols}
+                
+                rng = np.random.default_rng(42)
+                for _ in range(n_boot):
+                    indices = rng.choice(n_samples, size=subsample_size, replace=True)
+                    X_sub = X[indices]
+                    shap_sub = explainer.shap_values(X_sub)
+                    if isinstance(shap_sub, list):
+                        shap_sub = shap_sub[1] if len(shap_sub) > 1 else shap_sub[0]
+                    sub_mean_abs = np.mean(np.abs(np.array(shap_sub)), axis=0)
+                    for i, feat in enumerate(feature_cols):
+                        feature_means[feat].append(sub_mean_abs[i])
+                
+                for i, feat in enumerate(feature_cols):
+                    p5 = float(np.percentile(feature_means[feat], 5))
+                    p95 = float(np.percentile(feature_means[feat], 95))
+                    shap_ci_lower[feat] = round(p5, 4)
+                    shap_ci_upper[feat] = round(p95, 4)
+                    width = p95 - p5
+                    if width > max_width:
+                        max_width = width
+                
+                if max_width > 0.15:
+                    result_stability = "low"
+                elif max_width > 0.05:
+                    result_stability = "medium"
+            else:
+                result_stability = "low"
+            
+            if result_stability == "low":
+                logger.warning(
+                    "SHAP results unstable (insufficient data) — zeroing proxy contribution to prevent false intervention",
+                    model_id=model_id,
+                    max_width=max_width if n_samples >= 10 else -1
+                )
+                proxy_shap_pct = None
+
             result = SHAPResult(
                 model_id=model_id,
                 top_global_features=top_global_features,
                 group_divergent_features=list(set(group_divergent_features)),
-                proxy_shap_contribution=round(proxy_shap_pct, 4),
+                proxy_shap_contribution=round(proxy_shap_pct, 4) if proxy_shap_pct is not None else None,
+                shap_ci_lower=shap_ci_lower,
+                shap_ci_upper=shap_ci_upper,
+                result_stability=result_stability
             )
 
             logger.info(
@@ -152,7 +202,8 @@ class SHAPAnalyzer:
                 model_id=model_id,
                 top_features=[f[0] for f in top_global_features],
                 divergent_count=len(group_divergent_features),
-                proxy_contribution=round(proxy_shap_pct, 4),
+                proxy_contribution=round(proxy_shap_pct, 4) if proxy_shap_pct is not None else None,
+                stability=result_stability
             )
 
             return result

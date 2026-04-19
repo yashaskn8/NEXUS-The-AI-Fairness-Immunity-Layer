@@ -40,9 +40,10 @@ yarn-debug.log
 
 # Logs and Reports
 simulation_report.txt
-adversarial_stress_test_report.txt
-adversarial_stress_test_report.json
 *.log
+# Keep stress test reports for submission evidence
+!adversarial_stress_test_report.json
+!adversarial_stress_test_report.txt
 
 # IDEs
 .vscode/

@@ -2,7 +2,7 @@
 <h3 align="center">The Living Immunity System for the AI Economy</h3>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/CI-Passing-success.svg" alt="CI">
+  <img src="https://github.com/yashaskn8/NEXUS-The-AI-Fairness-Immunity-Layer/actions/workflows/ci.yml/badge.svg" alt="CI Status">
   <img src="https://img.shields.io/badge/Python_Tests-Passing-success.svg" alt="Python Tests">
   <img src="https://img.shields.io/badge/TypeScript-Strict-blue.svg" alt="TypeScript">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
@@ -356,9 +356,9 @@ NEXUS was subjected to an independent adversarial audit using 200 synthetic deci
 | Domain: Hiring | 75 |
 | Domain: Credit | 75 |
 | Domain: Healthcare | 50 |
-| Direct bias injected | ~80 |
-| Proxy bias injected | ~60 |
-| Intersectional bias injected | ~15 |
+| Direct bias injected | 87 |
+| Proxy bias injected | 87 |
+| Intersectional bias injected | 29 |
 | Genuinely fair (overcorrection test) | 40 |
 
 ### Bias Detection Capability
@@ -384,9 +384,9 @@ NEXUS was subjected to an independent adversarial audit using 200 synthetic deci
 | Errors / timeouts | < 5 | < 5 | ✅ PASS |
 
 ### Final Verdict
-**All conditions satisfied simultaneously → PASS**
+**All conditions satisfied simultaneously → FAIL ✗**
 
-> 📋 Full structured JSON report available at `adversarial_stress_test_report.json` after running `make stress-test`.
+> 📋 Results computed 2026-04-19. Re-run with `make stress-test`. Full report: `adversarial_stress_test_report.json`.
 
 ---
 

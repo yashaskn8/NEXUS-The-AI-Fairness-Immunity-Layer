@@ -1,45 +1,75 @@
-# CONTRIBUTING.md
+# NEXUS — Contributor Guide
 
-## 💻 Development Environment Setup
+## Development Environment Setup
 
-To ensure IDEs (like VS Code/Pylance) correctly resolve internal Python packages (`nexus_types`) and TypeScript modules, run the following setup commands:
-
-**1. Python Dependencies & Pylance Configuration:**
+### Python (all Python services)
 ```bash
-# Install internal packages natively into local environment
+# Install uv (fast pip replacement)
+pip install uv
+
+# Install shared internal packages into local environment
 uv pip install ./shared/python
-uv pip install pytest-asyncio
-```
-*Note: A `pyrightconfig.json` is located at the workspace root to correctly map the `.venv` and internal `sdk/python` paths.*
 
-**2. Node.js Dependencies:**
+# Install test utilities
+uv pip install pytest pytest-asyncio pytest-cov ruff mypy
+
+# Per-service dependencies
+uv pip install -r services/causal-engine/requirements.txt
+uv pip install -r services/interceptor/requirements.txt
+# ... repeat for each service
+```
+
+### Node.js (gateway and vault)
 ```bash
-# Install dependencies for gateway
 cd services/gateway && npm install
-
-# Initialize and install dependencies for vault
-cd ../vault && npm init -y && npm install @google-cloud/firestore @google-cloud/kms winston @types/winston typescript @types/node
+cd services/vault   && npm install
 ```
 
-## 📝 Code Style Guide
-- **Python**: Use `ruff` for linting and formatting. Ensure all files pass type checking with `mypy --strict`.
-- **TypeScript**: Use `eslint` with strict rules enabled. Run `tsc --noEmit` before submitting.
+### React Dashboard
+```bash
+cd apps/web && npm install
+npm run dev   # starts Vite dev server at http://localhost:5173
+```
 
-## 🌍 Adding a New Regulatory Standard
-1. Edit the `regulatory_standards.json` file in the Regulatory Intelligence service.
-2. Define the jurisdiction, target threshold, and domain.
-3. Run the complete test suite to ensure the parser integrates it properly.
-4. Open a Pull Request detailing the legal source of the standard.
+### IDE Configuration
+A `pyrightconfig.json` at the workspace root configures Pylance to
+resolve the `nexus_sdk` and `shared/python` packages correctly.
+VS Code with the Python and ESLint extensions is the recommended setup.
 
-## 📊 Adding a New Fairness Metric
-1. Implement the mathematical definition inside `causal-engine/app/fairness_computer.py`.
-2. Ensure the logic explicitly handles edge cases (e.g., divide by zero if a protected group is fully absent).
-3. Add full unit tests covering varying demographic splits.
-4. Update the Protobuf schema in the `nexus_types` package so the Gateway and Interceptor recognize the new enum.
+## Code Style
 
-## ✅ Pull Request Checklist
-Before opening a PR, ensure:
-- [ ] Tests pass across all modified microservices (`make test`).
-- [ ] Coverage remains ≥ 75%.
-- [ ] No `mypy` or TypeScript compilation errors exist.
-- [ ] Documentation has been updated to reflect the new feature.
+Python services must pass `ruff check` with no warnings.
+TypeScript must pass `tsc --noEmit` in strict mode.
+Run `make lint && make typecheck` before opening a pull request.
+
+## Adding a New Regulatory Standard
+
+1. Edit `services/causal-engine/app/regulatory_standards.json`.
+   Add a new entry under the appropriate domain and jurisdiction.
+2. Run `pytest services/causal-engine/tests/` — the test
+   `test_regulatory_threshold_EU_credit` will catch schema errors.
+3. No Python changes are required; the standards file is loaded
+   at runtime by `RegulatoryStandards.get_thresholds()`.
+
+## Adding a New Fairness Metric
+
+1. Implement the method in
+   `services/causal-engine/app/fairness_computer.py`.
+   Return a `FairnessMetric` Pydantic model.
+2. Add a corresponding test in
+   `services/causal-engine/tests/test_fairness_calculator.py`
+   with both a fair-dataset case and a biased-dataset case.
+3. Update `shared/proto/decision.proto` if the metric requires
+   a new field on `MetricResult`.
+4. Add the metric name to the interceptor's
+   `SUPPORTED_METRICS` list in `realtime_assessor.py`.
+
+## Pull Request Checklist
+
+Before opening a PR, confirm all of the following:
+- `make test` passes with ≥ 75% coverage on the changed service
+- `make lint` produces zero warnings
+- `make typecheck` exits with code 0
+- If you changed a service's API, update `docs/api_reference.md`
+- If you changed fairness thresholds, re-run `make stress-test`
+  and commit the updated `adversarial_stress_test_report.json`

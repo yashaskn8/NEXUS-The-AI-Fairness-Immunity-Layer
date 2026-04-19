@@ -148,8 +148,13 @@ stress-test:
 
 stress-test-report:
 	@echo "🔴 Running adversarial stress test and saving report..."
-	python scripts/adversarial_stress_test.py 2>&1 | tee adversarial_stress_test_report.txt
-	@echo "  Report saved to adversarial_stress_test_report.txt"
+	python scripts/adversarial_stress_test.py 2>&1 | tee stress_test_terminal.txt
+	@echo "Terminal output saved to stress_test_terminal.txt"
+	@echo "JSON report saved to adversarial_stress_test_report.json"
+
+update-readme-stress-results:
+	@echo "📝 Updating README with real stress test results..."
+	python scripts/update_readme_stress_results.py
 
 # ─────────────────────────────────────────────────────
 # Logging & cleanup

@@ -766,30 +766,84 @@ def main() -> None:
         )
     )
 
-    # ── Save structured JSON report ──
+    # ── Save comprehensive JSON report ──
+    lats = sorted(report.latencies)
+    n = len(lats)
+    avg_lat = round(sum(lats) / n, 2) if n > 0 else 0
+    p95_lat = round(lats[int(n * 0.95)], 2) if n > 0 else 0
+    p99_lat = round(lats[int(n * 0.99)], 2) if n > 0 else 0
+    fp_rate = round(
+        report.false_positives / report.genuinely_fair_total, 4
+    ) if report.genuinely_fair_total > 0 else 0
+    acc_drop = round(report.pre_accuracy - report.post_accuracy, 4)
+
     report_data = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "gateway_url": BASE_URL,
+        "dataset": {
+            "total_decisions": report.total_processed,
+            "hiring": sum(1 for d in decisions if d.domain == "hiring"),
+            "credit": sum(1 for d in decisions if d.domain == "credit"),
+            "healthcare": sum(1 for d in decisions if d.domain == "healthcare"),
+            "genuinely_fair": report.genuinely_fair_total,
+            "direct_bias_injected": report.direct_bias_total,
+            "proxy_bias_injected": report.proxy_bias_total,
+            "intersectional_bias_injected": report.intersectional_bias_total,
+        },
+        "bias_detection": {
+            "direct": {
+                "detected": report.direct_bias_detected,
+                "total": report.direct_bias_total,
+                "rate": round(
+                    report.direct_bias_detected / report.direct_bias_total, 4
+                ) if report.direct_bias_total > 0 else 0,
+            },
+            "proxy": {
+                "detected": report.proxy_bias_detected,
+                "total": report.proxy_bias_total,
+                "rate": round(
+                    report.proxy_bias_detected / report.proxy_bias_total, 4
+                ) if report.proxy_bias_total > 0 else 0,
+            },
+            "intersectional": {
+                "detected": report.intersectional_bias_detected,
+                "total": report.intersectional_bias_total,
+                "rate": round(
+                    report.intersectional_bias_detected
+                    / report.intersectional_bias_total, 4
+                ) if report.intersectional_bias_total > 0 else 0,
+            },
+        },
+        "fairness_metrics": {
+            "pre_nexus": {
+                "disparate_impact_female_vs_male": report.pre_di.get("female_vs_male"),
+                "demographic_parity_female_gap": report.pre_dp.get("female_gap"),
+                "model_accuracy": report.pre_accuracy,
+            },
+            "post_nexus": {
+                "disparate_impact_female_vs_male": report.post_di.get("female_vs_male"),
+                "demographic_parity_female_gap": report.post_dp.get("female_gap"),
+                "model_accuracy": report.post_accuracy,
+                "accuracy_drop": acc_drop,
+            },
+        },
+        "correction_stats": {
+            "total_intercepted": report.total_intercepted,
+            "false_negatives": report.false_negatives,
+            "false_positives": report.false_positives,
+            "false_positive_rate": fp_rate,
+        },
+        "performance": {
+            "avg_latency_ms": avg_lat,
+            "p95_latency_ms": p95_lat,
+            "p99_latency_ms": p99_lat,
+            "concurrent_workers": 50,
+        },
         "verdict": verdict,
-        "total_processed": report.total_processed,
-        "total_intercepted": report.total_intercepted,
-        "pre_di": report.pre_di,
-        "post_di": report.post_di,
-        "pre_dp": report.pre_dp,
-        "post_dp": report.post_dp,
-        "pre_accuracy": report.pre_accuracy,
-        "post_accuracy": report.post_accuracy,
-        "direct_bias": {"detected": report.direct_bias_detected, "total": report.direct_bias_total},
-        "proxy_bias": {"detected": report.proxy_bias_detected, "total": report.proxy_bias_total},
-        "intersectional_bias": {"detected": report.intersectional_bias_detected, "total": report.intersectional_bias_total},
-        "false_positives": report.false_positives,
-        "false_negatives": report.false_negatives,
-        "genuinely_fair_total": report.genuinely_fair_total,
-        "latency_avg_ms": round(sum(report.latencies) / len(report.latencies), 1) if report.latencies else 0,
-        "latency_p99_ms": round(sorted(report.latencies)[int(len(report.latencies) * 0.99)], 1) if report.latencies else 0,
     }
     with open("adversarial_stress_test_report.json", "w") as f:
         json.dump(report_data, f, indent=2)
-    console.print("[dim]Structured report saved to adversarial_stress_test_report.json[/dim]")
+    console.print("[dim]JSON report saved to adversarial_stress_test_report.json[/dim]")
 
     raise SystemExit(0 if verdict == "PASS" else 1)
 

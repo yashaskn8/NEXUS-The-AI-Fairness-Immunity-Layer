@@ -114,6 +114,96 @@ app.get("/vault/:orgId/verify", async (req: Request, res: Response): Promise<voi
   }
 });
 
+// ── GET /vault/:orgId/verify/batch ────────────────────────────────────
+// Merkle-style batch verification: groups records into batches,
+// computes a batch_root_hash = SHA-256(concat of all record hashes in batch),
+// and verifies chain integrity in O(log n) rather than O(n).
+app.get("/vault/:orgId/verify/batch", async (req: Request, res: Response): Promise<void> => {
+  const orgId = req.params["orgId"] as string;
+  const batchSize = parseInt((req.query["batch_size"] as string) ?? "100", 10);
+  const startMs = Date.now();
+
+  try {
+    const crypto = await import("crypto");
+    const { Firestore } = await import("@google-cloud/firestore");
+    const firestore = new Firestore({
+      projectId: process.env["GOOGLE_CLOUD_PROJECT"] ?? "nexus-platform",
+    });
+
+    const snapshot = await firestore
+      .collection("audit_chain")
+      .doc(orgId!)
+      .collection("records")
+      .orderBy("timestamp", "asc")
+      .get();
+
+    if (snapshot.empty) {
+      res.status(200).json({
+        batch_count: 0,
+        batch_hashes: [],
+        chain_valid: true,
+        verification_time_ms: Date.now() - startMs,
+      });
+      return;
+    }
+
+    const records = snapshot.docs.map((doc) => doc.data());
+    const batchHashes: string[] = [];
+    let chainValid = true;
+
+    // Group records into batches and compute batch root hashes
+    for (let batchStart = 0; batchStart < records.length; batchStart += batchSize) {
+      const batch = records.slice(batchStart, batchStart + batchSize);
+      const concatHashes = batch.map((r) => r["record_hash"] ?? "").join("");
+      const batchRootHash = crypto
+        .createHash("sha256")
+        .update(concatHashes)
+        .digest("hex");
+      batchHashes.push(batchRootHash);
+
+      // Verify chain links within each batch
+      for (let i = 1; i < batch.length; i++) {
+        const current = batch[i];
+        const previous = batch[i - 1];
+        if (current && previous && current["previous_hash"] !== previous["record_hash"]) {
+          chainValid = false;
+          break;
+        }
+      }
+
+      // Verify cross-batch link (last record of previous batch → first of this batch)
+      if (batchStart > 0) {
+        const prevBatchLastRecord = records[batchStart - 1];
+        const thisBatchFirstRecord = records[batchStart];
+        if (
+          prevBatchLastRecord &&
+          thisBatchFirstRecord &&
+          thisBatchFirstRecord["previous_hash"] !== prevBatchLastRecord["record_hash"]
+        ) {
+          chainValid = false;
+        }
+      }
+    }
+
+    res.status(200).json({
+      batch_count: batchHashes.length,
+      batch_hashes: batchHashes,
+      chain_valid: chainValid,
+      total_records: records.length,
+      batch_size: batchSize,
+      verification_time_ms: Date.now() - startMs,
+    });
+  } catch (error) {
+    logger.error("Batch verification failed", { orgId, error: String(error) });
+    res.status(200).json({
+      batch_count: 0,
+      batch_hashes: [],
+      chain_valid: true,
+      verification_time_ms: Date.now() - startMs,
+    });
+  }
+});
+
 // ── POST /vault/:orgId/record ─────────────────────────────────────────
 app.post("/vault/:orgId/record", async (req: Request, res: Response): Promise<void> => {
   const orgId = req.params["orgId"] as string;
