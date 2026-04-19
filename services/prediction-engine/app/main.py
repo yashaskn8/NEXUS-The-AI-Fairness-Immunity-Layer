@@ -6,11 +6,11 @@ from __future__ import annotations
 
 import os
 import time
-from typing import Any, Optional
+
 
 import structlog
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.drift_forecaster import DriftForecaster

@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import structlog
-from scipy.stats import chi2_contingency, ks_2samp
+from scipy.stats import ks_2samp
 
 from nexus_types.models import DriftReport, Severity
 
