@@ -115,7 +115,7 @@ describe("GET /v1/health", () => {
     const res = await request(app).get("/v1/health");
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty("status");
-    expect(["healthy", "degraded"]).toContain(res.body.status);
+    expect(["ok", "degraded"]).toContain(res.body.status);
     expect(typeof res.body.version).toBe("string");
     expect(res.body.uptime_seconds).toBeGreaterThanOrEqual(0);
   });
@@ -134,7 +134,7 @@ describe("POST /v1/events", () => {
       .send(VALID_PAYLOAD);
 
     expect(res.status).toBe(202);
-    expect(res.body.status).toBe("accepted");
+    expect(res.body.status).toBe("queued");
     expect(typeof res.body.event_id).toBe("string");
     expect(res.body.event_id.length).toBeGreaterThan(0);
   });
@@ -340,4 +340,8 @@ describe("Rate limiter", () => {
     // Request should succeed because old entries don't count
     expect(res.status).not.toBe(429);
   });
+});
+
+afterAll(() => {
+  mockRedisInstance.disconnect();
 });
