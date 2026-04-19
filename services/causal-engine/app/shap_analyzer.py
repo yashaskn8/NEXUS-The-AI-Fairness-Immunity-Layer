@@ -138,7 +138,7 @@ class SHAPAnalyzer:
                     except (ValueError, TypeError):
                         pass
 
-            proxy_shap_pct = proxy_contribution / total_shap if total_shap > 0 else 0.0
+            proxy_shap_pct: float | None = proxy_contribution / total_shap if total_shap > 0 else 0.0
 
             # Step 6: Bootstrap Confidence Intervals & Stability
             shap_ci_lower: dict[str, float] = {}
@@ -150,7 +150,7 @@ class SHAPAnalyzer:
             if n_samples >= 10:
                 n_boot = 50
                 subsample_size = max(5, int(n_samples * 0.5))
-                feature_means = {feat: [] for feat in feature_cols}
+                feature_means: dict[str, list[float]] = {feat: [] for feat in feature_cols}
                 
                 rng = np.random.default_rng(42)
                 for _ in range(n_boot):
