@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1776621275492" clover="3.2.0">
-  <project timestamp="1776621275492" name="All files">
-    <metrics statements="460" coveredstatements="285" conditionals="148" coveredconditionals="74" methods="54" coveredmethods="30" elements="662" coveredelements="389" complexity="0" loc="460" ncloc="460" packages="4" files="6" classes="6"/>
+<coverage generated="1776680163065" clover="3.2.0">
+  <project timestamp="1776680163065" name="All files">
+    <metrics statements="464" coveredstatements="286" conditionals="153" coveredconditionals="77" methods="56" coveredmethods="30" elements="673" coveredelements="393" complexity="0" loc="464" ncloc="464" packages="4" files="6" classes="6"/>
     <package name="src">
-      <metrics statements="206" coveredstatements="89" conditionals="78" coveredconditionals="26" methods="23" coveredmethods="5"/>
+      <metrics statements="210" coveredstatements="90" conditionals="83" coveredconditionals="29" methods="25" coveredmethods="5"/>
       <file name="index.ts" path="C:\Users\prana\OneDrive\Desktop\NEXUS\services\gateway\src\index.ts">
-        <metrics statements="197" coveredstatements="80" conditionals="78" coveredconditionals="26" methods="23" coveredmethods="5"/>
+        <metrics statements="198" coveredstatements="79" conditionals="79" coveredconditionals="26" methods="23" coveredmethods="4"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
@@ -193,28 +193,32 @@
         <line num="598" count="0" type="stmt"/>
         <line num="599" count="0" type="stmt"/>
         <line num="605" count="0" type="stmt"/>
-        <line num="612" count="1" type="stmt"/>
-        <line num="613" count="1" type="stmt"/>
-        <line num="617" count="1" type="stmt"/>
-        <line num="618" count="0" type="stmt"/>
-        <line num="619" count="0" type="stmt"/>
+        <line num="612" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="613" count="0" type="stmt"/>
+        <line num="614" count="0" type="stmt"/>
+        <line num="619" count="1" type="stmt"/>
         <line num="620" count="0" type="stmt"/>
         <line num="621" count="0" type="stmt"/>
-        <line num="624" count="1" type="stmt"/>
-        <line num="625" count="1" type="stmt"/>
+        <line num="622" count="0" type="stmt"/>
+        <line num="623" count="0" type="stmt"/>
+        <line num="626" count="1" type="stmt"/>
         <line num="627" count="1" type="stmt"/>
+        <line num="629" count="1" type="stmt"/>
       </file>
       <file name="schemas.ts" path="C:\Users\prana\OneDrive\Desktop\NEXUS\services\gateway\src\schemas.ts">
-        <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <metrics statements="12" coveredstatements="11" conditionals="4" coveredconditionals="3" methods="2" coveredmethods="1"/>
         <line num="1" count="1" type="stmt"/>
         <line num="7" count="1" type="stmt"/>
         <line num="12" count="1" type="stmt"/>
-        <line num="27" count="1" type="stmt"/>
-        <line num="29" count="1" type="stmt"/>
-        <line num="37" count="1" type="stmt"/>
-        <line num="49" count="1" type="stmt"/>
-        <line num="56" count="1" type="stmt"/>
-        <line num="63" count="1" type="stmt"/>
+        <line num="22" count="8" type="cond" truecount="3" falsecount="1"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="28" count="8" type="stmt"/>
+        <line num="38" count="1" type="stmt"/>
+        <line num="40" count="1" type="stmt"/>
+        <line num="48" count="1" type="stmt"/>
+        <line num="60" count="1" type="stmt"/>
+        <line num="67" count="1" type="stmt"/>
+        <line num="74" count="1" type="stmt"/>
       </file>
     </package>
     <package name="src.middleware">
