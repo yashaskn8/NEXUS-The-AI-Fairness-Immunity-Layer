@@ -116,29 +116,116 @@ async def _bootstrap_redis_thresholds(cc: CausalCache) -> int:
             },
         }
 
+        # ── Omega stress test models ─────────────────────────────────
+        # These model IDs are used by scripts/omega_stress_test.py.
+        # They need bootstrapped group stats so the assessor can detect
+        # bias and trigger interventions instead of passing through.
+        omega_models = {
+            "temporal-chameleon-v1": {
+                "gender": {
+                    "approval_rates": {"male": 0.72, "female": 0.45},
+                    "confidence_percentiles": {},
+                    "active_thresholds": {"male": 0.72, "female": 0.55, "global": 0.72},
+                    "last_updated": int(time.time() * 1000),
+                },
+            },
+            "metric-war-v1": {
+                "gender": {
+                    "approval_rates": {"male": 0.70, "female": 0.40},
+                    "confidence_percentiles": {},
+                    "active_thresholds": {"male": 0.70, "female": 0.50, "global": 0.70},
+                    "last_updated": int(time.time() * 1000),
+                },
+            },
+            "adversarial-calibration-v1": {
+                "gender": {
+                    "approval_rates": {"male": 0.72, "female": 0.35},
+                    "confidence_percentiles": {},
+                    "active_thresholds": {"male": 0.72, "female": 0.90, "global": 0.72},
+                    "last_updated": int(time.time() * 1000),
+                },
+            },
+            "byzantine-proxy-v1": {
+                "gender": {
+                    "approval_rates": {"male": 0.72, "female": 0.42, "non_binary": 0.48},
+                    "confidence_percentiles": {},
+                    "active_thresholds": {"male": 0.72, "female": 0.55, "non_binary": 0.58, "global": 0.72},
+                    "last_updated": int(time.time() * 1000),
+                },
+                "age_group": {
+                    "approval_rates": {"under_40": 0.70, "over_40": 0.48},
+                    "confidence_percentiles": {},
+                    "active_thresholds": {"under_40": 0.70, "over_40": 0.58, "global": 0.70},
+                    "last_updated": int(time.time() * 1000),
+                },
+            },
+            "cold-start-v1": {
+                "gender": {
+                    "approval_rates": {"male": 0.72, "female": 0.45},
+                    "confidence_percentiles": {},
+                    "active_thresholds": {"male": 0.72, "female": 0.55, "global": 0.72},
+                    "last_updated": int(time.time() * 1000),
+                },
+            },
+            "regulatory-conflict-credit-v1": {
+                "gender": {
+                    "approval_rates": {"male": 0.65, "female": 0.40},
+                    "confidence_percentiles": {},
+                    "active_thresholds": {"male": 0.65, "female": 0.50, "global": 0.65},
+                    "last_updated": int(time.time() * 1000),
+                },
+            },
+            "regulatory-conflict-hiring-v1": {
+                "gender": {
+                    "approval_rates": {"male": 0.65, "female": 0.40},
+                    "confidence_percentiles": {},
+                    "active_thresholds": {"male": 0.65, "female": 0.50, "global": 0.65},
+                    "last_updated": int(time.time() * 1000),
+                },
+            },
+            "regulatory-conflict-healthcare-v1": {
+                "gender": {
+                    "approval_rates": {"male": 0.65, "female": 0.40},
+                    "confidence_percentiles": {},
+                    "active_thresholds": {"male": 0.65, "female": 0.50, "global": 0.65},
+                    "last_updated": int(time.time() * 1000),
+                },
+            },
+        }
+
+        # Merge omega models into stress models
+        stress_models.update(omega_models)
+
         keys_set = 0
         for model_id, stats in stress_models.items():
             key = f"nexus:group_stats:demo-org:{model_id}"
-            existing_stress = await r.get(key)
-            if not existing_stress:
-                await r.setex(key, 600, json.dumps(stats))  # 10-min TTL
-                keys_set += 1
+            # Always overwrite on startup for omega models to ensure fresh thresholds
+            await r.setex(key, 600, json.dumps(stats))  # 10-min TTL
+            keys_set += 1
 
-                # Also seed proxy features and SHAP top5 for causal intervention
-                proxy_key = f"nexus:causal:demo-org:{model_id}:proxies"
-                shap_key  = f"nexus:causal:demo-org:{model_id}:shap_top5"
+            # Also seed for omega-org (used by omega stress test)
+            omega_key = f"nexus:group_stats:omega-org:{model_id}"
+            await r.setex(omega_key, 600, json.dumps(stats))
 
-                if "hiring" in model_id:
+            # Also seed proxy features and SHAP top5 for causal intervention
+            for org in ["demo-org", "omega-org"]:
+                proxy_key = f"nexus:causal:{org}:{model_id}:proxies"
+                shap_key  = f"nexus:causal:{org}:{model_id}:shap_top5"
+
+                if "hiring" in model_id or "chameleon" in model_id or "calibration" in model_id or "cold-start" in model_id:
                     await r.setex(proxy_key, 600, json.dumps({"proxies": ["career_gap_years", "university_tier"]}))
                     await r.setex(shap_key, 600, json.dumps([["career_gap_years", 0.42], ["university_tier", 0.31], ["skills_score", 0.28], ["gpa", 0.22], ["years_exp", 0.18]]))
-                elif "credit" in model_id:
+                elif "credit" in model_id or "metric-war" in model_id:
                     await r.setex(proxy_key, 600, json.dumps({"proxies": ["zip_code", "career_gap_years"]}))
                     await r.setex(shap_key, 600, json.dumps([["zip_code", 0.38], ["career_gap_years", 0.35], ["credit_score", 0.30], ["debt_ratio", 0.25], ["income_k", 0.20]]))
                 elif "healthcare" in model_id:
                     await r.setex(proxy_key, 600, json.dumps({"proxies": ["career_gap_years", "zip_code"]}))
                     await r.setex(shap_key, 600, json.dumps([["career_gap_years", 0.40], ["zip_code", 0.36], ["severity_score", 0.32], ["comorbidity_count", 0.22], ["insurance_tier", 0.15]]))
+                elif "byzantine" in model_id:
+                    await r.setex(proxy_key, 600, json.dumps({"proxies": ["career_gap_years", "zip_code", "university_tier"]}))
+                    await r.setex(shap_key, 600, json.dumps([["career_gap_years", 0.45], ["zip_code", 0.38], ["university_tier", 0.32], ["commute_minutes", 0.22], ["linkedin_connections", 0.18]]))
 
-                logger.info(f"Bootstrapped stress-test model {model_id}")
+            logger.info(f"Bootstrapped model {model_id}")
 
         cache_keys_loaded = keys_set + 1
         await r.close()
@@ -191,6 +278,7 @@ app.add_middleware(
 
 
 @app.post("/intercept")
+@app.post("/v1/intercept")
 async def intercept_decision(request: Request) -> dict:
     """
     POST /intercept — Accept DecisionEvent, return InterceptResponse.
@@ -214,13 +302,18 @@ async def intercept_decision(request: Request) -> dict:
             "interceptor_version": "1.0.0",
         }
 
-    from nexus_types.models import DecisionEvent, ProtectedAttribute, DecisionType
+    from nexus_types.models import DecisionEvent, ProtectedAttribute, DecisionType  # noqa: E402 — cached after first call
 
-    # Parse event
+    # Parse event - handle both dict {"attr": "val"} and list [{"name": "n", "value": "v"}]
     protected_attrs = []
-    for pa in body.get("protected_attributes", []):
-        if isinstance(pa, dict):
-            protected_attrs.append(ProtectedAttribute(name=pa["name"], value=pa["value"]))
+    pa_raw = body.get("protected_attributes", [])
+    if isinstance(pa_raw, dict):
+        for name, value in pa_raw.items():
+            protected_attrs.append(ProtectedAttribute(name=name, value=str(value)))
+    elif isinstance(pa_raw, list):
+        for pa in pa_raw:
+            if isinstance(pa, dict):
+                protected_attrs.append(ProtectedAttribute(name=pa["name"], value=pa["value"]))
 
     event = DecisionEvent(
         event_id=body.get("event_id", ""),

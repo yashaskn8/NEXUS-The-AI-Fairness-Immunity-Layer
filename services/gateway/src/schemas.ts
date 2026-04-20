@@ -17,10 +17,21 @@ export const DecisionEventSchema = z.object({
   decision: z.enum(["approved", "rejected", "pending"]),
   confidence: z.number().min(0).max(1),
   features: z.record(z.string(), z.unknown()),
-  protected_attributes: z.array(ProtectedAttributeSchema).optional().default([]),
+  protected_attributes: z.preprocess((val) => {
+    // Accept BOTH dict format {"gender": "female"} and array format [{name, value}]
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      return Object.entries(val as Record<string, unknown>).map(([name, value]) => ({
+        name,
+        value: String(value),
+      }));
+    }
+    return val;
+  }, z.array(ProtectedAttributeSchema).optional().default([])),
   individual_id: z.string().optional(),
   true_label: z.string().optional(),
   domain: z.enum(["hiring", "credit", "healthcare", "legal", "insurance"]).optional(),
+  jurisdiction: z.string().optional(),
+  intercept_mode: z.boolean().optional(),
   metadata: z.record(z.string(), z.unknown()).optional().default({}),
 });
 

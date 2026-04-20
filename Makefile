@@ -18,7 +18,7 @@
 #   make lint        — Run linters
 # ═══════════════════════════════════════════════════════
 
-.PHONY: up down demo health seed seed-dry verify live-demo simulate simulate-report stress-test stress-test-report logs clean test lint build
+.PHONY: up down demo health seed seed-dry verify live-demo simulate simulate-report stress-test stress-test-report logs clean test lint build omega-test omega-test-report e2e-latency
 
 # ─────────────────────────────────────────────────────
 # Core commands
@@ -173,3 +173,15 @@ clean:
 	@echo "🧹 Full teardown..."
 	docker-compose down -v --remove-orphans
 	@echo "  ✅ All containers and volumes removed"
+
+omega-test:
+	python scripts/omega_stress_test.py
+
+omega-test-report:
+	python scripts/omega_stress_test.py 2>&1 | tee omega_test_terminal.txt
+	@echo "JSON report: omega_stress_test_report.json"
+
+e2e-latency:
+	@echo "📏 Running end-to-end gateway latency profiler..."
+	python scripts/e2e_latency_profiler.py
+

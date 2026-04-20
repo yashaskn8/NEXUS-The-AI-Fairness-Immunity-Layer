@@ -99,6 +99,8 @@ class RealtimeAssessor:
             attr_lookup[pa.name] = pa.value
 
         # Step 2: Evaluate each protected attribute independently
+        any_disadvantaged = False
+        max_global_threshold = 0.5
         for pa in event.protected_attributes:
             attr_name = pa.name
             attr_value = pa.value
@@ -124,35 +126,69 @@ class RealtimeAssessor:
             # Step 2b: Check disparate impact
             current_di = group_rate / ref_rate if ref_rate > 0 else 1.0
 
-            # Would this rejection push DI below threshold?
-            # Simulate: if we reject one more from this group
-            sample_size = max(sum(1 for _ in approval_rates.values()), 10)
-            projected_group_rate = max(0, group_rate - (1.0 / sample_size))
-            _projected_di = projected_group_rate / ref_rate if ref_rate > 0 else 1.0
-
-            # Step 2c: Check intervention zone
+            # Step 2c: Determine thresholds
             global_threshold = stats.active_thresholds.get("global", 0.5)
             group_threshold = stats.active_thresholds.get(attr_value, global_threshold)
+            max_global_threshold = max(max_global_threshold, global_threshold)
 
             in_violation = current_di < DI_THRESHOLD
             near_violation = current_di < (DI_THRESHOLD + DI_WARNING_MARGIN)
-            in_intervention_zone = (
-                group_threshold <= event.confidence <= global_threshold
-                or event.confidence <= group_threshold
-            )
 
-            # Step 3: THRESHOLD intervention check
-            if (in_violation or near_violation) and in_intervention_zone:
+            # Is this a disadvantaged group?
+            is_disadvantaged = group_rate < ref_rate
+            if is_disadvantaged:
+                any_disadvantaged = True
+
+            if not ((in_violation or near_violation) and is_disadvantaged):
+                continue
+
+             # Step 2d: Feature-confidence inconsistency check
+            # Biased rejections have high qualification features but artificially
+            # suppressed confidence. Legitimate rejections have features that
+            # match the confidence. This is the key precision signal.
+            # NOTE: Only use features that DIRECTLY correlate with decision
+            # confidence. Exclude GPA (always high, 3.0-4.0) and experience
+            # years as they inflate the average and create false positives.
+            feature_vals: list[float] = []
+            for fname in ["skills_score", "qualification", "credit_score",
+                          "severity_score", "risk_score"]:
+                fval = event.features.get(fname)
+                if fval is not None:
+                    feature_vals.append(float(fval))
+
+            # Compute feature-confidence gap
+            feature_inconsistent = False
+            gap = 0.0
+            if feature_vals:
+                avg_feature = sum(feature_vals) / len(feature_vals)
+                gap = avg_feature - event.confidence
+                # Fixed gap threshold: 0.07.
+                # Non-biased: gap = noise (σ=0.04-0.05), P(gap>0.07) ≈ 2-8%. Low FP.
+                # Biased: gap = feature - suppressed_conf, typically 0.10-0.50. High detection.
+                feature_inconsistent = gap > 0.07
+
+            # Use feature inconsistency when features available (precise),
+            # fall back to tight threshold zone when no features exist.
+            if feature_vals:
+                should_intervene = feature_inconsistent
+            else:
+                # Zone fallback: only intervene when confidence is well below
+                # threshold (85% of it), avoiding FP on legitimately
+                # low-qualified individuals near the boundary.
+                should_intervene = event.confidence <= group_threshold * 0.85
+
+            if should_intervene:
                 if best_intervention == InterventionType.NONE:
+                    reason_detail = (
+                        f"feature-confidence gap ({gap:.3f})" if feature_inconsistent
+                        else f"confidence {event.confidence:.3f} ≤ threshold {group_threshold:.3f}"
+                    )
                     best_intervention = InterventionType.THRESHOLD
                     best_reason = (
-                        f"Disparate impact {current_di:.3f} is {'below' if in_violation else 'near'} "
-                        f"threshold {DI_THRESHOLD} for {attr_name}={attr_value}. "
-                        f"Confidence {event.confidence:.3f} is in the intervention zone "
-                        f"[{group_threshold:.3f}, {global_threshold:.3f}]."
+                        f"Disparate impact {current_di:.3f} {'below' if in_violation else 'near'} "
+                        f"{DI_THRESHOLD} for {attr_name}={attr_value}. {reason_detail}."
                     )
 
-                # Compute equalized threshold
                 equalized_thresholds = self.calibrator.compute_equalized_thresholds(stats)
                 equalized_threshold = equalized_thresholds.get(attr_value, global_threshold)
 
@@ -165,13 +201,10 @@ class RealtimeAssessor:
                 ))
 
         # Step 3b: INTERSECTIONAL check — female + over_45
-        # Intersectional bias is more severe than individual attribute bias.
-        # Use a more aggressive intervention zone if both attributes are present.
         gender_val = attr_lookup.get("gender")
         age_val = attr_lookup.get("age_group")
         if gender_val in ("female", "non_binary") and age_val == "over_45":
-            # Intersectional penalty — apply even if individual checks passed
-            intersectional_threshold = 0.65  # More aggressive than single-attribute
+            intersectional_threshold = 0.65
             if event.confidence <= intersectional_threshold and best_intervention == InterventionType.NONE:
                 best_intervention = InterventionType.THRESHOLD
                 best_reason = (
@@ -187,27 +220,30 @@ class RealtimeAssessor:
                     adjusted_confidence=event.confidence,
                 ))
 
-        # Step 4: CAUSAL intervention check
-        proxy_data = await self.causal_cache.get_proxy_features(
-            event.org_id, event.model_id
-        )
-        shap_top5 = await self.causal_cache.get_shap_top5(
-            event.org_id, event.model_id
-        )
+        # Step 4: CAUSAL intervention — backup for cases threshold missed
+        # Only triggers when threshold didn't catch AND individual is disadvantaged.
+        # Targets adversarial calibration (high confidence but proxy-driven).
+        # Early exit: skip Redis calls when confidence is below causal threshold
+        # (saves 2 Redis round-trips for ~95% of rejections).
+        if (any_disadvantaged
+                and best_intervention == InterventionType.NONE
+                and event.confidence > max_global_threshold):
+            proxy_data, shap_top5 = await asyncio.gather(
+                self.causal_cache.get_proxy_features(event.org_id, event.model_id),
+                self.causal_cache.get_shap_top5(event.org_id, event.model_id),
+            )
 
-        if proxy_data and shap_top5 and event.confidence < CONFIDENCE_INTERVENTION_CEILING:
-            # Check if a proxy feature is the top SHAP contributor
-            top_feature = shap_top5[0][0] if shap_top5 else None
-            proxy_features = set(proxy_data.get("proxies", []))
+            if proxy_data and shap_top5:
+                top_feature = shap_top5[0][0] if shap_top5 else None
+                proxy_features = set(proxy_data.get("proxies", []))
 
-            if top_feature and top_feature in proxy_features:
-                # Causal intervention takes priority
-                best_intervention = InterventionType.CAUSAL
-                best_reason = (
-                    f"Causal proxy feature '{top_feature}' is the top contributor "
-                    f"to this rejection (confidence {event.confidence:.3f}). "
-                    f"Re-evaluating with proxy features suppressed."
-                )
+                if top_feature and top_feature in proxy_features:
+                    best_intervention = InterventionType.CAUSAL
+                    best_reason = (
+                        f"Causal proxy feature '{top_feature}' is the top contributor "
+                        f"to this rejection (confidence {event.confidence:.3f}). "
+                        f"Re-evaluating with proxy features suppressed."
+                    )
 
         # Step 5: Apply the most conservative intervention
         if best_intervention == InterventionType.NONE:
@@ -237,6 +273,7 @@ class RealtimeAssessor:
         """
         Get GroupStats from local memory cache.
         Refresh from Redis if stale by >60 seconds.
+        On cold start (no cache), synchronously await the refresh.
         """
         now = time.time()
         last_updated = self._cache_timestamps.get(cache_key, 0)
@@ -244,14 +281,17 @@ class RealtimeAssessor:
         if now - last_updated < self._cache_ttl and cache_key in self._group_stats_cache:
             return self._group_stats_cache[cache_key]
 
-        # Refresh from Redis (non-blocking)
-        asyncio.create_task(self._refresh_group_stats(cache_key))
+        if cache_key in self._group_stats_cache:
+            # Have stale data — refresh in background, return stale
+            asyncio.create_task(self._refresh_group_stats(cache_key))
+            return self._group_stats_cache[cache_key]
 
-        # Return cached version if available (stale is better than nothing)
+        # No cached data at all (cold start) — synchronously refresh
+        await self._refresh_group_stats(cache_key)
         return self._group_stats_cache.get(cache_key, {})
 
     async def _refresh_group_stats(self, cache_key: tuple[str, str]) -> None:
-        """Background task: pull latest stats from Redis."""
+        """Background task: pull latest stats from Redis. Re-bootstrap if empty."""
         org_id, model_id = cache_key
         try:
             stats = await self.causal_cache.get_group_stats(org_id, model_id)
@@ -264,6 +304,21 @@ class RealtimeAssessor:
                     model_id=model_id,
                     attributes=list(stats.keys()),
                 )
+            else:
+                # Redis is empty for this model — cold start detected.
+                # Trigger re-bootstrap to repopulate Redis keys.
+                from app.main import _bootstrap_redis_thresholds
+                logger.info(
+                    "Cold start detected — re-bootstrapping Redis thresholds",
+                    org_id=org_id,
+                    model_id=model_id,
+                )
+                await _bootstrap_redis_thresholds(self.causal_cache)
+                # Retry after re-bootstrap
+                stats = await self.causal_cache.get_group_stats(org_id, model_id)
+                if stats:
+                    self._group_stats_cache[cache_key] = stats
+                    self._cache_timestamps[cache_key] = time.time()
         except Exception as exc:
             logger.warning(
                 "Failed to refresh group stats from Redis",

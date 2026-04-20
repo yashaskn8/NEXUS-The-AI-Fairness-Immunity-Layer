@@ -10,8 +10,8 @@ COPY app/ app/
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app:/shared/python
-ENV PORT=8082
+ENV PORT=8083
 
-EXPOSE 8082
+EXPOSE 8083
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8082"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8083"]

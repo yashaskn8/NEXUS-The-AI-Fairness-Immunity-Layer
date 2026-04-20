@@ -1,0 +1,337 @@
+{
+  "generated_at": "2026-04-20T10:04:13.840054+00:00",
+  "verdict": "PASS",
+  "conditions_passed": 9,
+  "conditions_total": 9,
+  "conditions": {
+    "Temporal Chameleon detection \u2265 80%": true,
+    "Metric War detection \u2265 85%": true,
+    "Adversarial Calibration detection \u2265 75%": true,
+    "Byzantine Proxy Storm detection \u2265 80%": true,
+    "Regulatory Conflict resolution \u2265 85%": true,
+    "Cold Start: no crash + recovery": true,
+    "Federated Poisoning neutralised": true,
+    "P99 latency < 200ms (100 workers)": true,
+    "Global false positive rate < 3%": true
+  },
+  "latency": {
+    "avg_ms": 34.4,
+    "p95_ms": 51.1,
+    "p99_ms": 56.0
+  },
+  "cold_start": {
+    "phase_a_cache_cleared": true,
+    "phase_b_cold_responses": [
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.302).",
+        "latency_ms": 25.5
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.354).",
+        "latency_ms": 18.1
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.264).",
+        "latency_ms": 14.7
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.272).",
+        "latency_ms": 5.6
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.298).",
+        "latency_ms": 4.9
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.253).",
+        "latency_ms": 20.3
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.362).",
+        "latency_ms": 15.8
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.360).",
+        "latency_ms": 4.9
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.318).",
+        "latency_ms": 4.4
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.290).",
+        "latency_ms": 5.0
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.326).",
+        "latency_ms": 4.5
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.265).",
+        "latency_ms": 4.2
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.285).",
+        "latency_ms": 22.8
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.355).",
+        "latency_ms": 15.3
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.351).",
+        "latency_ms": 15.2
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.342).",
+        "latency_ms": 5.6
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.347).",
+        "latency_ms": 25.2
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.239).",
+        "latency_ms": 16.8
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.349).",
+        "latency_ms": 5.7
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "intervention_reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.336).",
+        "latency_ms": 5.1
+      }
+    ],
+    "phase_c_boundary_responses": [
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "final_decision": "approved",
+        "reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.220)."
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "final_decision": "approved",
+        "reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.220)."
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "final_decision": "approved",
+        "reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.220)."
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "final_decision": "approved",
+        "reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.220)."
+      },
+      {
+        "http_status": 200,
+        "was_intercepted": true,
+        "final_decision": "approved",
+        "reason": "Disparate impact 0.625 below 0.8 for gender=female. feature-confidence gap (0.220)."
+      }
+    ],
+    "phase_d_recovery_responses": [
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 1.0
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      },
+      {
+        "was_intercepted": true,
+        "latency_ms": 0.1
+      }
+    ],
+    "service_crashed": false,
+    "cold_start_handled": true,
+    "recovery_successful": true
+  },
+  "cold_start_handle_rate": 1.0,
+  "cold_start_recovery_rate": 1.0,
+  "cold_start_p99_ms": 25.5,
+  "federated_poisoning": {
+    "total_submitted": 6,
+    "rejected_oversized_n": 0,
+    "rejected_anomalous_grad": 0,
+    "rejected_budget_exceeded": 6,
+    "global_model_corrupted": false,
+    "attack_neutralised": true
+  },
+  "federated_rejected_count": 6,
+  "federated_rejection_rate": 1.0,
+  "e2e_gateway_latency": {
+    "measured_at": "2026-04-20T10:06:45.298286+00:00",
+    "description": "Full end-to-end latency measured through the complete gateway stack (auth + circuit breaker + interceptor). This supersedes the direct-to-interceptor measurement from the Omega test high-concurrency phase.",
+    "results_by_concurrency": {
+      "1": {
+        "requests_sent": 200,
+        "successful": 200,
+        "errors": 0,
+        "avg_ms": 81.51,
+        "median_ms": 82.81,
+        "p95_ms": 94.73,
+        "p99_ms": 97.85,
+        "max_ms": 98.8,
+        "throughput_rps": 12.2,
+        "wall_clock_ms": 16340.0,
+        "sla_pass": true
+      },
+      "10": {
+        "requests_sent": 200,
+        "successful": 200,
+        "errors": 0,
+        "avg_ms": 95.39,
+        "median_ms": 94.59,
+        "p95_ms": 125.36,
+        "p99_ms": 135.07,
+        "max_ms": 142.0,
+        "throughput_rps": 102.1,
+        "wall_clock_ms": 1958.0,
+        "sla_pass": true
+      },
+      "50": {
+        "requests_sent": 200,
+        "successful": 200,
+        "errors": 0,
+        "avg_ms": 339.8,
+        "median_ms": 342.32,
+        "p95_ms": 505.9,
+        "p99_ms": 523.32,
+        "max_ms": 527.27,
+        "throughput_rps": 132.1,
+        "wall_clock_ms": 1514.0,
+        "sla_pass": false
+      },
+      "100": {
+        "requests_sent": 200,
+        "successful": 200,
+        "errors": 0,
+        "avg_ms": 593.8,
+        "median_ms": 624.98,
+        "p95_ms": 761.28,
+        "p99_ms": 781.69,
+        "max_ms": 796.83,
+        "throughput_rps": 129.0,
+        "wall_clock_ms": 1550.0,
+        "sla_pass": false
+      }
+    }
+  },
+  "e2e_p99_100_workers_ms": 781.69,
+  "e2e_sla_pass_100_workers": false
+}

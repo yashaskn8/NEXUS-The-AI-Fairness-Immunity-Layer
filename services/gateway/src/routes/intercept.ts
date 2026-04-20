@@ -12,41 +12,61 @@ const logger = winston.createLogger({
 });
 
 const INTERCEPTOR_URL = process.env["INTERCEPTOR_URL"] ?? "http://localhost:8081";
-const INTERCEPTOR_TIMEOUT_MS = 180; // Give 180ms to still return within 200ms SLA
+const INTERCEPTOR_TIMEOUT_MS = 500; // Allow enough time under high concurrency
 
 /**
  * HTTP agent with keep-alive for connection reuse (simulates HTTP/2 keep-alive).
  */
 const keepAliveAgent = INTERCEPTOR_URL.startsWith("https")
-  ? new https.Agent({ keepAlive: true, maxSockets: 50 })
-  : new http.Agent({ keepAlive: true, maxSockets: 50 });
+  ? new https.Agent({ keepAlive: true, maxSockets: 200 })
+  : new http.Agent({ keepAlive: true, maxSockets: 200 });
 
 /**
  * Forward request to interceptor service with timeout.
  */
 async function forwardToInterceptor(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), INTERCEPTOR_TIMEOUT_MS);
-
-  try {
-    const response = await fetch(`${INTERCEPTOR_URL}/intercept`, {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify(payload);
+    const url = new URL(`${INTERCEPTOR_URL}/intercept`);
+    
+    const options: http.RequestOptions = {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
+      hostname: url.hostname,
+      port: url.port,
+      path: url.pathname,
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(body),
+      },
+      agent: keepAliveAgent,
+      timeout: INTERCEPTOR_TIMEOUT_MS,
+    };
+
+    const req = (INTERCEPTOR_URL.startsWith("https") ? https : http).request(options, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => {
+        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            reject(new Error("Failed to parse interceptor response"));
+          }
+        } else {
+          reject(new Error(`Interceptor responded with ${res.statusCode}: ${data}`));
+        }
+      });
     });
 
-    clearTimeout(timeoutId);
+    req.on("error", (err) => reject(err));
+    req.on("timeout", () => {
+      req.destroy();
+      reject(new Error("Interceptor request timed out"));
+    });
 
-    if (!response.ok) {
-      throw new Error(`Interceptor responded with ${response.status}`);
-    }
-
-    return (await response.json()) as Record<string, unknown>;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
+    req.write(body);
+    req.end();
+  });
 }
 
 /**
