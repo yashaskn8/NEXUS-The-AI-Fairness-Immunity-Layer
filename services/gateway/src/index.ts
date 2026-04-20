@@ -609,9 +609,11 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction): void =>
 // Start server
 // ═══════════════════════════════════════════════════════
 
-app.listen(PORT, () => {
-  logger.info(`NEXUS Gateway started on port ${PORT}`, { version: VERSION });
-});
+if (process.env["NODE_ENV"] !== "test") {
+  app.listen(PORT, () => {
+    logger.info(`NEXUS Gateway started on port ${PORT}`, { version: VERSION });
+  });
+}
 
 // Graceful shutdown
 const shutdown = async (): Promise<void> => {
