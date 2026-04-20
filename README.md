@@ -20,7 +20,6 @@ Nobody is watching. Until now."</em>
 
 <p align="center">
   <a href="#quick-start">🚀 Quick Start</a> · 
-  <a href="#demo-video">📽 Demo Video</a> ·
   <a href="#architecture">📊 Architecture</a> · 
   <a href="#testing">🧪 Testing</a> ·
   <a href="#adversarial-stress-test-results">🔴 Stress Test</a> ·
@@ -78,18 +77,6 @@ result = client.log_decision(decision="rejected", confidence=0.55, features={...
 
 ---
 
-## 🎬 Demo Video
-
-[![NEXUS Demo Video](https://img.youtube.com/vi/VIDEO_ID_HERE/maxresdefault.jpg)](https://youtu.be/VIDEO_ID_HERE)
-<p align="center"><em>3-minute demo: real-time bias interception on a live hiring model</em></p>
-> 📌 NOTE: Demo video ID will be replaced with the live YouTube link prior to official contest submission.
-
-**What you will see in the demo:**
-- A hiring model with embedded gender bias (Disparate Impact: 0.67) corrected to 0.84 in real time by NEXUS's Threshold Autopilot
-- The Counterfactual Simulator providing legally admissible evidence of disparate treatment for an identical candidate profile
-- The AI Conscience Feed generating Gemini-powered plain-language explanations for a non-technical compliance officer
-
----
 
 ## 🚀 Quick Start
 
