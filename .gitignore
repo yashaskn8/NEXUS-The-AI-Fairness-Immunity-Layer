@@ -56,6 +56,7 @@ simulation_report.txt
 
 # Pytest / Coverage
 .pytest_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 coverage/
