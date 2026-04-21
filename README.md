@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/Gemini_API-Integrated-4CAF50.svg" alt="Gemini API">
   <img src="https://img.shields.io/badge/Firebase-Integrated-FFCA28.svg" alt="Firebase">
   <img src="https://img.shields.io/badge/Flutter-3.x-02569B.svg" alt="Flutter">
+  <img src="https://img.shields.io/badge/Contributing-Welcome-brightgreen.svg" alt="Contributing">
 </p>
 
 <p align="center">

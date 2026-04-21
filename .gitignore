@@ -58,6 +58,7 @@ simulation_report.txt
 .pytest_cache/
 .coverage
 htmlcov/
+coverage/
 coverage.xml
 
 # Terraform
