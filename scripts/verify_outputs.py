@@ -30,13 +30,13 @@ def check(name: str, condition: bool, detail: str = "") -> bool:
     global passed, failed
     if condition:
         passed += 1
-        print(f"  ✅ {name}")
+        print(f"  [PASS] {name}")
         if detail:
             print(f"     {detail}")
         return True
     else:
         failed += 1
-        print(f"  ❌ {name}")
+        print(f"  [FAIL] {name}")
         if detail:
             print(f"     {detail}")
         return False
@@ -45,7 +45,7 @@ def check(name: str, condition: bool, detail: str = "") -> bool:
 def warn(name: str, detail: str = "") -> None:
     global warnings
     warnings += 1
-    print(f"  ⚠  {name}")
+    print(f"  [WARN] {name}")
     if detail:
         print(f"     {detail}")
 
@@ -71,9 +71,9 @@ def safe_post(url: str, payload: dict, timeout: float = 10.0) -> dict | None:
 
 
 def main() -> None:
-    print("═" * 60)
-    print("  NEXUS — Acceptance Criteria Verification")
-    print("═" * 60)
+    print("=" * 60)
+    print("  NEXUS -- Acceptance Criteria Verification")
+    print("=" * 60)
     print()
 
     # ── Output 1: Health check ──
@@ -227,18 +227,18 @@ def main() -> None:
         pass
     check("Unauthenticated request returns 401", no_auth == 401, f"Got: {no_auth}")
 
-    # ── Summary ──
+    # -- Summary --
     total = passed + failed
-    print(f"\n{'═' * 60}")
+    print(f"\n{'=' * 60}")
     print(f"  RESULTS: {passed}/{total} passed, {failed} failed, {warnings} warnings")
-    print(f"{'═' * 60}")
+    print(f"{'=' * 60}")
 
     if failed == 0:
-        print("  🎉 ALL CHECKS PASSED!")
+        print("  RESULT: ALL CHECKS PASSED!")
     elif failed <= 3:
-        print("  ⚠  MOSTLY PASSING — check failed items above")
+        print("  RESULT: MOSTLY PASSING -- check failed items above")
     else:
-        print("  ❌ SIGNIFICANT FAILURES — services may not be running")
+        print("  RESULT: SIGNIFICANT FAILURES -- services may not be running")
 
     sys.exit(0 if failed == 0 else 1)
 

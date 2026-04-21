@@ -51,9 +51,9 @@ def main() -> None:
     args = parse_args()
     n_candidates = args.count
 
-    print("═" * 60)
+    print("=" * 60)
     print("  NEXUS Demo Seeder — Biased Hiring Scenario")
-    print("═" * 60)
+    print("=" * 60)
     print(f"  Candidates: {n_candidates}")
     print(f"  Mode: {'DRY RUN' if args.dry_run else 'LIVE'}")
     print(f"  Gateway: {args.base_url}")
@@ -127,27 +127,27 @@ def main() -> None:
     print(f"\n[*] Validating embedded bias patterns:")
 
     assert gender_di < 0.80, f"Gender DI ({gender_di:.3f}) should be < 0.80 (four-fifths rule violation)"
-    print(f"    ✅ Gender DI ({gender_di:.3f}) < 0.80 — bias confirmed")
+    print(f"    [OK] Gender DI ({gender_di:.3f}) < 0.80 -- bias confirmed")
 
     assert age_di < 0.80, f"Age DI ({age_di:.3f}) should be < 0.80"
-    print(f"    ✅ Age DI ({age_di:.3f}) < 0.80 — bias confirmed")
+    print(f"    [OK] Age DI ({age_di:.3f}) < 0.80 -- bias confirmed")
 
     assert female_rate < male_rate, f"Female rate ({female_rate:.2%}) should be < male rate ({male_rate:.2%})"
-    print(f"    ✅ Female rate < Male rate — disparity confirmed")
+    print(f"    [OK] Female rate < Male rate -- disparity confirmed")
 
     assert old_rate < young_rate, f"Older rate ({old_rate:.2%}) should be < younger rate ({young_rate:.2%})"
-    print(f"    ✅ Older rate < Younger rate — age disparity confirmed")
+    print(f"    [OK] Older rate < Younger rate -- age disparity confirmed")
 
     # Check intersectional bias
     intersectional_mask = (gender == "F") & (age_group == "41-55")
     intersectional_rate = (decisions[intersectional_mask] == "approved").mean()
     assert intersectional_rate < female_rate, "Intersectional (F+41-55) rate should be lowest"
-    print(f"    ✅ Intersectional rate ({intersectional_rate:.2%}) < Female rate ({female_rate:.2%}) — confirmed")
+    print(f"    [OK] Intersectional rate ({intersectional_rate:.2%}) < Female rate ({female_rate:.2%}) -- confirmed")
 
     if args.dry_run:
-        print(f"\n{'═' * 60}")
+        print(f"\n{'=' * 60}")
         print(f"  DRY RUN COMPLETE — No events sent to gateway")
-        print(f"{'═' * 60}")
+        print(f"{'=' * 60}")
         return
 
     # ── Phase 1: Async mode (detection) ──
@@ -192,9 +192,9 @@ def main() -> None:
                 print(f"    Sent {i + 1}/{half} events...")
 
         async_client.flush()
-        print(f"    ✅ {half} events sent in async mode")
+        print(f"    [OK] {half} events sent in async mode")
     except Exception as exc:
-        print(f"    ⚠ Gateway unavailable ({exc}) — continuing with local demo")
+        print(f"    [WARN] Gateway unavailable ({exc}) -- continuing with local demo")
     finally:
         async_client.close()
 
@@ -247,10 +247,10 @@ def main() -> None:
             if not args.no_progress and (i + 1 - half) % 50 == 0:
                 print(f"    Sent {i + 1 - half}/{n_candidates - half} events...")
 
-        print(f"    ✅ {n_candidates - half} events sent in intercept mode")
-        print(f"    ⚡ {intercepted_count} decisions intercepted")
+        print(f"    [OK] {n_candidates - half} events sent in intercept mode")
+        print(f"    [INT] {intercepted_count} decisions intercepted")
     except Exception as exc:
-        print(f"    ⚠ Gateway unavailable ({exc}) — using simulated results")
+        print(f"    [WARN] Gateway unavailable ({exc}) -- using simulated results")
         nexus_decisions.extend(decisions[half:])
     finally:
         intercept_client.close()
@@ -261,16 +261,16 @@ def main() -> None:
     post_female_rate = (nexus_arr[gender == "F"] == "approved").mean()
     post_di = post_female_rate / post_male_rate if post_male_rate > 0 else 0
 
-    print(f"\n{'═' * 60}")
+    print(f"\n{'=' * 60}")
     print(f"  RESULTS")
-    print(f"{'═' * 60}")
+    print(f"{'=' * 60}")
     print(f"  BEFORE NEXUS:")
     print(f"    Disparate Impact (gender): {gender_di:.3f}")
     print(f"    Disparate Impact (age):    {age_di:.3f}")
     print(f"  AFTER NEXUS:")
     print(f"    Disparate Impact (gender): {post_di:.3f}")
     print(f"    Interceptions:             {intercepted_count}")
-    print(f"{'═' * 60}")
+    print(f"{'=' * 60}")
     print(f"  NEXUS corrected hiring bias in real-time.")
     print(f"  Total runtime: ~{time.process_time():.0f}s")
 

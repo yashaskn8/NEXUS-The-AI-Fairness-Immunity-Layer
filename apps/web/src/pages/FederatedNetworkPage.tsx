@@ -1,95 +1,96 @@
 import { motion } from "framer-motion";
-import { Globe, Users, Zap, TrendingUp } from "lucide-react";
-import reactCountUp from "react-countup";
-const CountUp = (reactCountUp as any).default || reactCountUp;
-const mockFederatedNodes = [
-  { id: "node-1", name: "FairView Finance", location: "New York", participants: 12, lastRound: Date.now() - 120000, status: "active" },
-  { id: "node-2", name: "EquiLend EU", location: "London", participants: 8, lastRound: Date.now() - 300000, status: "active" },
-  { id: "node-3", name: "CreditSafe APAC", location: "Singapore", participants: 5, lastRound: Date.now() - 600000, status: "syncing" },
-  { id: "node-4", name: "InsureRight AU", location: "Sydney", participants: 3, lastRound: Date.now() - 1200000, status: "active" },
-  { id: "node-5", name: "HealthAI India", location: "Mumbai", participants: 7, lastRound: Date.now() - 180000, status: "active" },
+import { Globe, Shield } from "lucide-react";
+import { MetricKPI } from "../components/MetricKPI";
+
+
+const nodes = [
+  { id: "node-1", name: "FairView Finance", location: "New York", participants: 12, status: "active", x: 250, y: 135 },
+  { id: "node-2", name: "EquiLend EU", location: "London", participants: 8, status: "active", x: 380, y: 120 },
+  { id: "node-3", name: "CreditSafe APAC", location: "Singapore", participants: 5, status: "syncing", x: 600, y: 195 },
+  { id: "node-4", name: "InsureRight AU", location: "Sydney", participants: 3, status: "active", x: 650, y: 270 },
+  { id: "node-5", name: "HealthAI India", location: "Mumbai", participants: 7, status: "active", x: 550, y: 170 },
+  { id: "node-6", name: "EduFair Brazil", location: "São Paulo", participants: 4, status: "active", x: 300, y: 280 },
 ];
 
 export function FederatedNetworkPage() {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <Globe size={28} color="var(--accent-blue)" />
+        <Globe size={28} color="var(--cyan)" />
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 700 }}>Federated Network</h1>
-          <p style={{ color: "var(--text-dim)", fontSize: 14 }}>Cross-org collaborative fairness training with Differential Privacy</p>
+          <p style={{ color: "var(--text-dim)", fontSize: 14 }}>Cross-organisation collaborative fairness training with Differential Privacy</p>
         </div>
       </div>
 
-      {/* Stats Row */}
+      {/* KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
-        {[
-          { icon: Users, label: "Participating Orgs", value: 35 },
-          { icon: Zap, label: "Completed Rounds", value: 142 },
-          { icon: TrendingUp, label: "Avg DI Improvement", value: 8.4, suffix: "%" },
-          { icon: Globe, label: "ε Budget Remaining", value: 3.2 },
-        ].map((stat) => (
-          <div key={stat.label} className="nexus-card" style={{ textAlign: "center" }}>
-            <stat.icon size={24} color="var(--accent-blue)" style={{ marginBottom: 8 }} />
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 28, fontWeight: 700 }}>
-              <CountUp end={stat.value} duration={1.2} decimals={stat.suffix ? 1 : 0} suffix={stat.suffix || ""} />
-            </div>
-            <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 2 }}>{stat.label}</div>
-          </div>
-        ))}
+        <MetricKPI label="Participating Orgs" value={35} colour="blue" />
+        <MetricKPI label="Completed Rounds" value={142} colour="green" />
+        <MetricKPI label="Avg DI Improvement" value={8.4} unit="%" colour="cyan" decimals={1} />
+        <MetricKPI label="ε Budget Remaining" value={3.2} colour="purple" decimals={1} />
       </div>
 
-      {/* World Map Placeholder + Node List */}
+      {/* Map + Nodes */}
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20 }}>
-        <div className="nexus-card" style={{ position: "relative", minHeight: 400 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Global Network Map</div>
-          <div
-            style={{
-              height: 350,
-              background: "radial-gradient(circle at 50% 50%, rgba(59,130,246,0.05) 0%, transparent 60%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "var(--radius)",
-            }}
-          >
-            {/* SVG world map with node dots */}
-            <svg viewBox="0 0 800 400" width="100%" height="100%">
-              {/* Simplified continents */}
-              <ellipse cx="400" cy="200" rx="360" ry="180" fill="none" stroke="rgba(59,130,246,0.1)" strokeWidth="1" />
-              <ellipse cx="400" cy="200" rx="240" ry="120" fill="none" stroke="rgba(59,130,246,0.06)" strokeWidth="1" />
-              <ellipse cx="400" cy="200" rx="120" ry="60" fill="none" stroke="rgba(59,130,246,0.04)" strokeWidth="1" />
-              {/* Node positions */}
-              {[
-                { x: 250, y: 135, label: "NYC" },
-                { x: 380, y: 120, label: "London" },
-                { x: 600, y: 195, label: "Singapore" },
-                { x: 650, y: 270, label: "Sydney" },
-                { x: 550, y: 170, label: "Mumbai" },
-              ].map((node, i) => (
-                <g key={i}>
-                  {/* Pulse ring */}
-                  <circle cx={node.x} cy={node.y} r="12" fill="none" stroke="rgba(59,130,246,0.3)" strokeWidth="1">
-                    <animate attributeName="r" values="8;20;8" dur="3s" repeatCount="indefinite" begin={`${i * 0.6}s`} />
-                    <animate attributeName="opacity" values="1;0;1" dur="3s" repeatCount="indefinite" begin={`${i * 0.6}s`} />
+        <div className="nexus-card" style={{ padding: 0, overflow: "hidden" }}>
+          <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(59,130,246,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 13, fontWeight: 600, fontFamily: "var(--font-display)" }}>Global Network Map</span>
+            <span className="pill pill-green"><Shield size={10} /> DP Enabled</span>
+          </div>
+          <div style={{
+            position: "relative", minHeight: 380,
+            background: "radial-gradient(circle at 50% 50%, rgba(6,182,212,0.04) 0%, transparent 60%)",
+          }}>
+            <svg viewBox="0 0 800 400" width="100%" height="100%" style={{ display: "block" }}>
+              <defs>
+                <radialGradient id="hubGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+                </radialGradient>
+              </defs>
+              {/* Grid lines */}
+              {Array.from({ length: 9 }, (_, i) => (
+                <line key={`h${i}`} x1="0" y1={i * 50} x2="800" y2={i * 50} stroke="rgba(59,130,246,0.04)" />
+              ))}
+              {Array.from({ length: 17 }, (_, i) => (
+                <line key={`v${i}`} x1={i * 50} y1="0" x2={i * 50} y2="400" stroke="rgba(59,130,246,0.04)" />
+              ))}
+              {/* Concentric rings */}
+              {[180, 120, 60].map((r, i) => (
+                <ellipse key={r} cx="400" cy="200" rx={r * 2} ry={r} fill="none" stroke={`rgba(6,182,212,${0.06 - i * 0.015})`} strokeWidth="1" />
+              ))}
+              {/* Connection lines */}
+              {nodes.map((node) => (
+                <line key={`line-${node.id}`} x1={node.x} y1={node.y} x2="400" y2="200" stroke="rgba(6,182,212,0.12)" strokeWidth="1" strokeDasharray="4 4">
+                  <animate attributeName="stroke-dashoffset" values="0;-8" dur="2s" repeatCount="indefinite" />
+                </line>
+              ))}
+              {/* Hub */}
+              <circle cx="400" cy="200" r="40" fill="url(#hubGlow)" />
+              <circle cx="400" cy="200" r="10" fill="#10B981">
+                <animate attributeName="r" values="10;14;10" dur="3s" repeatCount="indefinite" />
+              </circle>
+              <text x="400" y="230" textAnchor="middle" fill="#10B981" fontSize="10" fontFamily="Space Mono" fontWeight="bold">NEXUS HUB</text>
+              {/* Nodes */}
+              {nodes.map((node, i) => (
+                <g key={node.id}>
+                  <circle cx={node.x} cy={node.y} r="16" fill="none" stroke={node.status === "active" ? "rgba(6,182,212,0.3)" : "rgba(245,158,11,0.3)"} strokeWidth="1">
+                    <animate attributeName="r" values="12;22;12" dur="3s" repeatCount="indefinite" begin={`${i * 0.5}s`} />
+                    <animate attributeName="opacity" values="1;0;1" dur="3s" repeatCount="indefinite" begin={`${i * 0.5}s`} />
                   </circle>
-                  <circle cx={node.x} cy={node.y} r="5" fill="#3B82F6" />
-                  <text x={node.x} y={node.y - 12} textAnchor="middle" fill="#94A3B8" fontSize="10">{node.label}</text>
-                  {/* Connection lines to center */}
-                  <line x1={node.x} y1={node.y} x2="400" y2="200" stroke="rgba(59,130,246,0.08)" strokeWidth="1" strokeDasharray="4 4" />
+                  <circle cx={node.x} cy={node.y} r="6" fill={node.status === "active" ? "#06B6D4" : "#F59E0B"} />
+                  <text x={node.x} y={node.y - 14} textAnchor="middle" fill="#94A3B8" fontSize="9" fontFamily="Space Grotesk">{node.location}</text>
                 </g>
               ))}
-              {/* Center hub */}
-              <circle cx="400" cy="200" r="8" fill="#10B981" />
-              <text x="400" y="185" textAnchor="middle" fill="#10B981" fontSize="10" fontWeight="bold">HUB</text>
             </svg>
           </div>
         </div>
 
         {/* Node List */}
         <div>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Active Nodes</div>
-          {mockFederatedNodes.map((node, i) => (
+          <div style={{ fontSize: 13, fontWeight: 600, fontFamily: "var(--font-display)", marginBottom: 12 }}>Active Nodes</div>
+          {nodes.map((node, i) => (
             <motion.div
               key={node.id}
               className="nexus-card"
@@ -97,25 +98,26 @@ export function FederatedNetworkPage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05 }}
+              whileHover={{ borderColor: "rgba(6,182,212,0.4)" }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                <span style={{ fontWeight: 500, fontSize: 13 }}>{node.name}</span>
-                <span
-                  style={{
-                    padding: "2px 8px",
-                    borderRadius: 10,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    background: node.status === "active" ? "rgba(16,185,129,0.15)" : "rgba(245,158,11,0.15)",
-                    color: node.status === "active" ? "#10B981" : "#F59E0B",
-                  }}
-                >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <span style={{ fontWeight: 600, fontSize: 13, fontFamily: "var(--font-display)" }}>{node.name}</span>
+                <span style={{
+                  padding: "2px 8px", borderRadius: 10, fontSize: 10, fontWeight: 600,
+                  background: node.status === "active" ? "var(--green-subtle)" : "var(--amber-subtle)",
+                  color: node.status === "active" ? "var(--green)" : "var(--amber)",
+                }}>
                   {node.status.toUpperCase()}
                 </span>
               </div>
-              <div style={{ display: "flex", gap: 12, fontSize: 11, color: "var(--text-dim)" }}>
+              <div style={{ display: "flex", gap: 14, fontSize: 11, color: "var(--text-dim)" }}>
                 <span>📍 {node.location}</span>
-                <span>👥 {node.participants}</span>
+                <span>👥 {node.participants} participants</span>
+              </div>
+              {/* Mini bar */}
+              <div style={{ height: 3, background: "rgba(255,255,255,0.05)", borderRadius: 2, marginTop: 8, overflow: "hidden" }}>
+                <motion.div initial={{ width: 0 }} animate={{ width: `${60 + node.participants * 4}%` }} transition={{ delay: i * 0.1, duration: 0.6 }}
+                  style={{ height: "100%", background: "var(--cyan)", borderRadius: 2 }} />
               </div>
             </motion.div>
           ))}

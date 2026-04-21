@@ -5,20 +5,66 @@
    ═══════════════════════════════════════════════════════ */
 
 :root {
-  --bg-base: #050B18;
-  --bg-surface: #0D1628;
-  --border-glow: rgba(59, 130, 246, 0.18);
-  --accent-blue: #3B82F6;
-  --accent-green: #10B981;
-  --accent-amber: #F59E0B;
-  --accent-red: #EF4444;
-  --font-mono: 'Space Mono', monospace;
-  --font-body: 'DM Sans', sans-serif;
-  --radius: 10px;
-  --shadow-card: 0 0 24px rgba(59, 130, 246, 0.08);
-  --text-primary: #F1F5F9;
+  /* Backgrounds */
+  --bg-base:       #050B18;
+  --bg-surface:    #0D1628;
+  --bg-elevated:   #111E35;
+  --bg-overlay:    rgba(13, 22, 40, 0.85);
+
+  /* Borders */
+  --border-subtle:  rgba(59, 130, 246, 0.12);
+  --border-default: rgba(59, 130, 246, 0.25);
+  --border-strong:  rgba(59, 130, 246, 0.50);
+  --border-glow:    rgba(59, 130, 246, 0.18);
+
+  /* Accent colours */
+  --blue:          #3B82F6;
+  --blue-dim:      rgba(59, 130, 246, 0.15);
+  --purple:        #8B5CF6;
+  --purple-dim:    rgba(139, 92, 246, 0.15);
+  --green:         #10B981;
+  --green-dim:     rgba(16, 185, 129, 0.15);
+  --amber:         #F59E0B;
+  --amber-dim:     rgba(245, 158, 11, 0.15);
+  --red:           #EF4444;
+  --red-dim:       rgba(239, 68, 68, 0.15);
+  --cyan:          #06B6D4;
+
+  /* Legacy aliases */
+  --accent-blue:   var(--blue);
+  --accent-green:  var(--green);
+  --accent-amber:  var(--amber);
+  --accent-red:    var(--red);
+
+  /* Typography */
+  --font-body:     'DM Sans',     sans-serif;
+  --font-mono:     'Space Mono',  monospace;
+  --font-display:  'DM Sans',     sans-serif;
+
+  /* Shape */
+  --radius:        10px;
+  --radius-lg:     16px;
+
+  /* Glassmorphism */
+  --glass-bg:      rgba(13, 22, 40, 0.60);
+  --glass-blur:    blur(16px);
+  --glass-border:  1px solid rgba(59, 130, 246, 0.20);
+
+  /* Shadows */
+  --shadow-card:   0 0 32px rgba(59, 130, 246, 0.06),
+                   0 1px 3px rgba(0, 0, 0, 0.40);
+  --shadow-glow:   0 0 24px rgba(59, 130, 246, 0.25);
+
+  /* Severity colours */
+  --severity-ok:       var(--green);
+  --severity-warning:  var(--amber);
+  --severity-high:     #F97316;
+  --severity-critical: var(--red);
+
+  /* Text */
+  --text-primary:   #F1F5F9;
   --text-secondary: #94A3B8;
-  --text-dim: #64748B;
+  --text-dim:       #64748B;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -54,20 +100,19 @@ code, .mono {
 
 .nexus-card {
   background: var(--bg-surface);
-  border: 1px solid var(--border-glow);
-  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
   box-shadow: var(--shadow-card);
-  padding: 20px;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  padding: 20px 24px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .nexus-card:hover {
-  box-shadow: 0 0 32px rgba(59, 130, 246, 0.14);
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: var(--border-default);
 }
 
 .nexus-btn {
-  background: var(--accent-blue);
+  background: var(--blue);
   color: white;
   border: none;
   border-radius: var(--radius);
@@ -90,8 +135,8 @@ code, .mono {
 
 .nexus-btn-outline {
   background: transparent;
-  color: var(--accent-blue);
-  border: 1px solid var(--accent-blue);
+  color: var(--blue);
+  border: 1px solid var(--blue);
   border-radius: var(--radius);
   padding: 8px 16px;
   font-family: var(--font-body);
@@ -106,35 +151,144 @@ code, .mono {
 }
 
 /* Severity Colors */
-.severity-ok { color: var(--accent-green); }
-.severity-warning { color: var(--accent-amber); }
-.severity-high { color: var(--accent-amber); }
-.severity-critical { color: var(--accent-red); }
+.severity-ok { color: var(--green); }
+.severity-warning { color: var(--amber); }
+.severity-high { color: var(--severity-high); }
+.severity-critical { color: var(--red); }
 
-/* Pulse animation for critical badges */
+/* ═══════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════ */
+
 @keyframes pulse-critical {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+  50%       { opacity: 0.8; box-shadow: 0 0 0 6px rgba(239,68,68,0); }
 }
-
 .pulse-critical {
-  animation: pulse-critical 1s ease-in-out infinite;
+  animation: pulse-critical 1.5s ease-in-out infinite;
 }
 
-/* Skeleton shimmer */
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.4); opacity: 0.6; }
+}
+
+@keyframes slide-in-top {
+  from { transform: translateY(-12px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #1E293B 25%, #334155 50%, #1E293B 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface) 25%,
+    var(--bg-elevated) 50%,
+    var(--bg-surface) 75%
+  );
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite;
   border-radius: var(--radius);
 }
 
-/* Scrollbar */
+/* ═══════════════════════════════════════════════════════
+   PREMIUM UTILITIES & EFFECTS
+   ═══════════════════════════════════════════════════════ */
+
+.nexus-mesh {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-color: #050b18;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(239, 68, 68, 0.08) 0px, transparent 50%);
+  filter: blur(80px);
+  animation: mesh-float 20s ease-in-out infinite;
+}
+
+@keyframes mesh-float {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1) translate(20px, 20px); }
+}
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-accent {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.glow-text {
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+.glow-box {
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+}
+
+/* Immunity Sphere Animations */
+@keyframes sphere-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sphere-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.animate-float {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+/* Pill badges */
+.pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+.pill-blue { background: var(--blue-dim); color: var(--blue); }
+.pill-purple { background: var(--purple-dim); color: var(--purple); }
+.pill-green { background: var(--green-dim); color: var(--green); }
+.pill-amber { background: var(--amber-dim); color: var(--amber); }
+.pill-red { background: var(--red-dim); color: var(--red); }
+.pill-cyan { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
+.pill-grey { background: rgba(148, 163, 184, 0.15); color: var(--text-secondary); }
+
+/* ═══════════════════════════════════════════════════════
+   Scrollbar
+   ═══════════════════════════════════════════════════════ */
+
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -150,4 +304,82 @@ code, .mono {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PHASE 8 — Atmosphere & Polish Animations
+   ═══════════════════════════════════════════════════════ */
+
+/* FIX 1 — Landing page atmosphere drift */
+@keyframes atmosphere-drift {
+  0%   { transform: translate(0px,   0px)   scale(1.00); }
+  33%  { transform: translate(20px, -15px)  scale(1.03); }
+  66%  { transform: translate(-15px, 20px)  scale(0.97); }
+  100% { transform: translate(0px,   0px)   scale(1.00); }
+}
+
+/* FIX 1 — Shield ring pulses */
+@keyframes ring-pulse {
+  0%   { transform: scale(1.0); opacity: 0.6; }
+  100% { transform: scale(1.8); opacity: 0;   }
+}
+
+/* FIX 1 — Gradient text shift */
+@keyframes gradient-shift {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* FIX 1 — Ticker scroll */
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* FIX 1 — Landing grid overlay */
+.landing-grid-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* FIX 3 — Hash shimmer for pending records */
+@keyframes hash-shimmer {
+  0%   { background-position: -200px 0; }
+  100% { background-position:  200px 0; }
+}
+.hash-pending-shimmer {
+  display: inline-block;
+  width: 160px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(59,130,246,0.08) 25%,
+    rgba(59,130,246,0.20) 50%,
+    rgba(59,130,246,0.08) 75%
+  );
+  background-size: 200px 100%;
+  animation: hash-shimmer 1.4s infinite;
+}
+
+/* MICRO 3 — Bias intercept banner slide-in */
+@keyframes banner-slide-in {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+@keyframes banner-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Ticker hover pause */
+.ticker-strip:hover .ticker-inner {
+  animation-play-state: paused;
 }

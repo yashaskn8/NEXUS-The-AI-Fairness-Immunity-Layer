@@ -1,39 +1,47 @@
 import { motion } from "framer-motion";
 
 interface SeverityBadgeProps {
-  severity: "ok" | "none" | "low" | "warning" | "medium" | "high" | "critical";
+  severity: string;
 }
 
-const config: Record<string, { bg: string; text: string; label: string }> = {
-  ok: { bg: "rgba(16,185,129,0.15)", text: "#10B981", label: "OK" },
-  none: { bg: "rgba(16,185,129,0.15)", text: "#10B981", label: "OK" },
-  low: { bg: "rgba(59,130,246,0.15)", text: "#3B82F6", label: "LOW" },
-  warning: { bg: "rgba(245,158,11,0.15)", text: "#F59E0B", label: "WARNING" },
-  medium: { bg: "rgba(245,158,11,0.15)", text: "#F59E0B", label: "MEDIUM" },
-  high: { bg: "rgba(245,158,11,0.2)", text: "#F59E0B", label: "HIGH" },
-  critical: { bg: "rgba(239,68,68,0.2)", text: "#EF4444", label: "CRITICAL" },
+const SEVERITY_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
+  ok:       { label: "OK",       bg: "var(--green-subtle)",          text: "var(--green)",    dot: "var(--green)" },
+  none:     { label: "OK",       bg: "var(--green-subtle)",          text: "var(--green)",    dot: "var(--green)" },
+  low:      { label: "LOW",      bg: "var(--blue-subtle)",           text: "var(--blue-400)", dot: "var(--blue-400)" },
+  info:     { label: "INFO",     bg: "var(--blue-subtle)",           text: "var(--blue-400)", dot: "var(--blue-400)" },
+  warning:  { label: "WARNING",  bg: "var(--amber-subtle)",          text: "var(--amber)",    dot: "var(--amber)" },
+  medium:   { label: "MEDIUM",   bg: "var(--amber-subtle)",          text: "var(--amber)",    dot: "var(--amber)" },
+  high:     { label: "HIGH",     bg: "rgba(249,115,22,0.10)",        text: "#F97316",         dot: "#F97316" },
+  critical: { label: "CRITICAL", bg: "var(--red-subtle)",            text: "var(--red)",      dot: "var(--red)" },
 };
 
 export function SeverityBadge({ severity }: SeverityBadgeProps) {
-  const c = config[severity] ?? config.low!;
+  const c = SEVERITY_CONFIG[severity] ?? SEVERITY_CONFIG.low!;
   const isCritical = severity === "critical";
 
   return (
     <motion.span
-      animate={isCritical ? { opacity: [1, 0.6, 1] } : {}}
-      transition={isCritical ? { duration: 1, repeat: Infinity } : {}}
+      className={isCritical ? "pulse-critical" : ""}
       style={{
-        display: "inline-block",
-        padding: "2px 10px",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "3px 10px",
         borderRadius: 20,
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: 700,
-        letterSpacing: "0.05em",
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
         background: c.bg,
         color: c.text,
         fontFamily: "var(--font-mono)",
       }}
     >
+      <span style={{
+        width: 6, height: 6, borderRadius: "50%",
+        background: c.dot,
+        animation: isCritical ? "pulse-dot 1.5s ease-in-out infinite" : undefined,
+      }} />
       {c.label}
     </motion.span>
   );
