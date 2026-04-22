@@ -11,6 +11,7 @@ interface MetricKPIProps {
   colour:      "blue" | "green" | "red" | "amber" | "purple" | "cyan";
   animate?:    boolean;
   decimals?:   number;
+  valueFontSize?: number;
 }
 
 const COLOUR_MAP: Record<string, { main: string; bg: string }> = {
@@ -22,9 +23,11 @@ const COLOUR_MAP: Record<string, { main: string; bg: string }> = {
   cyan:   { main: "var(--cyan)",         bg: "rgba(6,182,212,0.05)" },
 };
 
-export function MetricKPI({ label, value, unit, trend, trendValue, colour, animate = true, decimals = 0 }: MetricKPIProps) {
+export function MetricKPI({ label, value, unit, trend, trendValue, colour, animate = true, decimals = 0, valueFontSize }: MetricKPIProps) {
   const c = COLOUR_MAP[colour] ?? COLOUR_MAP.blue!;
   const numValue = typeof value === "number" ? value : parseFloat(value) || 0;
+  // FIX 3: Auto-size font for long string values to prevent wrapping
+  const computedFontSize = valueFontSize ?? (typeof value === "string" && value.length > 10 ? 20 : 36);
 
   return (
     <div className="nexus-card" style={{
@@ -44,7 +47,7 @@ export function MetricKPI({ label, value, unit, trend, trendValue, colour, anima
         {label}
       </div>
 
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: 36, fontWeight: 700, color: c.main, lineHeight: 1 }}>
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: computedFontSize, fontWeight: 700, color: c.main, lineHeight: 1 }}>
         {animate && typeof value === "number" ? (
           <CountUp end={numValue} duration={1.5} decimals={decimals} separator="," />
         ) : (

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Lock, ShieldCheck, ChevronDown, ChevronRight, FileDigit, RefreshCw } from "lucide-react";
+import { Lock, ShieldCheck, ChevronDown, ChevronRight, FileDigit, RefreshCw, Link2, KeyRound, ScrollText } from "lucide-react";
 import { useCollection, orderBy, limit } from "../hooks/useCollection";
 import { normaliseVaultRecord } from "../utils/normalise";
 import { truncHash, formatRelTime } from "../utils/format";
@@ -9,14 +9,37 @@ import { MetricKPI } from "../components/MetricKPI";
 
 const ORG_ID = "demo-org";
 
-// Fallback vault records
+/**
+ * Generate a deterministic 64-char hex hash from a seed index.
+ * Must NOT use Math.random() — hashes must be stable across refreshes.
+ */
+function generateFakeHash(seed: number): string {
+  return Array.from({ length: 8 }, (_, i) =>
+    ((seed * (i + 1) * 0xDEADBEEF) >>> 0).toString(16).padStart(8, '0')
+  ).join('');
+}
+
+// Fallback vault records — 10 records to fill viewport
 const FALLBACK_RECORDS = [
-  { record_id: "rec-001", event_id: "hiring-v1", org_id: ORG_ID, action_type: "intercept", payload_hash: "a3f8b2c1d4e5f6789012345678901234567890abcdef1234567890abcdef1234", previous_hash: "0".repeat(64), record_hash: "a3f8b2c1d4e5f6789012345678901234567890abcdef1234567890abcdef1234", signature: "sig-001", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 120000 },
-  { record_id: "rec-002", event_id: "hiring-v1", org_id: ORG_ID, action_type: "intercept", payload_hash: "b4c9d3e2f5a6b7890123456789012345678901bcdef2345678901bcdef23456", previous_hash: "a3f8b2c1d4e5f6789012345678901234567890abcdef1234567890abcdef1234", record_hash: "b4c9d3e2f5a6b7890123456789012345678901bcdef2345678901bcdef23456", signature: "sig-002", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 240000 },
-  { record_id: "rec-003", event_id: "credit-v2", org_id: ORG_ID, action_type: "metric", payload_hash: "c5d0e4f3a6b7c8901234567890123456789012cdef3456789012cdef345678", previous_hash: "b4c9d3e2f5a6b7890123456789012345678901bcdef2345678901bcdef23456", record_hash: "c5d0e4f3a6b7c8901234567890123456789012cdef3456789012cdef345678", signature: "sig-003", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 360000 },
+  { record_id: "rec-001", event_id: "hiring-v1",      org_id: ORG_ID, action_type: "intercept",    payload_hash: generateFakeHash(1),  previous_hash: "0".repeat(64),      record_hash: generateFakeHash(1),  signature: "sig-001", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 120000 },
+  { record_id: "rec-002", event_id: "hiring-v1",      org_id: ORG_ID, action_type: "intercept",    payload_hash: generateFakeHash(2),  previous_hash: generateFakeHash(1), record_hash: generateFakeHash(2),  signature: "sig-002", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 240000 },
+  { record_id: "rec-003", event_id: "credit-v2",      org_id: ORG_ID, action_type: "metric",       payload_hash: generateFakeHash(3),  previous_hash: generateFakeHash(2), record_hash: generateFakeHash(3),  signature: "sig-003", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 360000 },
+  { record_id: "rec-004", event_id: "hiring-v1",      org_id: ORG_ID, action_type: "intercept",    payload_hash: generateFakeHash(4),  previous_hash: generateFakeHash(3), record_hash: generateFakeHash(4),  signature: "sig-004", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 480000 },
+  { record_id: "rec-005", event_id: "healthcare-v1",  org_id: ORG_ID, action_type: "remediation",  payload_hash: generateFakeHash(5),  previous_hash: generateFakeHash(4), record_hash: generateFakeHash(5),  signature: "sig-005", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 600000 },
+  { record_id: "rec-006", event_id: "credit-v2",      org_id: ORG_ID, action_type: "metric",       payload_hash: generateFakeHash(6),  previous_hash: generateFakeHash(5), record_hash: generateFakeHash(6),  signature: "sig-006", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 720000 },
+  { record_id: "rec-007", event_id: "hiring-v1",      org_id: ORG_ID, action_type: "intercept",    payload_hash: generateFakeHash(7),  previous_hash: generateFakeHash(6), record_hash: generateFakeHash(7),  signature: "sig-007", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 840000 },
+  { record_id: "rec-008", event_id: "credit-v2",      org_id: ORG_ID, action_type: "decision",     payload_hash: generateFakeHash(8),  previous_hash: generateFakeHash(7), record_hash: generateFakeHash(8),  signature: "sig-008", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 960000 },
+  { record_id: "rec-009", event_id: "healthcare-v1",  org_id: ORG_ID, action_type: "metric",       payload_hash: generateFakeHash(9),  previous_hash: generateFakeHash(8), record_hash: generateFakeHash(9),  signature: "sig-009", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 1080000 },
+  { record_id: "rec-010", event_id: "hiring-v1",      org_id: ORG_ID, action_type: "intercept",    payload_hash: generateFakeHash(10), previous_hash: generateFakeHash(9), record_hash: generateFakeHash(10), signature: "sig-010", signed_by: "nexus-vault-v1", timestamp_ms: Date.now() - 1200000 },
 ];
 
-const actionColor: Record<string, string> = { intercept: "#3B82F6", metric: "#10B981", remediation: "#A78BFA", audit: "#F59E0B" };
+const actionColor: Record<string, string> = {
+  intercept: "#3B82F6",
+  metric: "#10B981",
+  remediation: "#A78BFA",
+  decision: "#F59E0B",
+  audit: "#F59E0B",
+};
 
 /**
  * Compute chain integrity only over records that have a real 64-char hex hash.
@@ -112,7 +135,8 @@ export function AuditVaultPage() {
           animate={false}
         />
         <MetricKPI label="Latest Record" value={records.length > 0 ? formatRelTime(records[0]!.timestamp_ms) : "—"} colour="cyan" animate={false} />
-        <MetricKPI label="Signing Authority" value="nexus-vault-v1" colour="purple" animate={false} />
+        {/* FIX 3: Auto-size font for Signing Authority to prevent text wrapping */}
+        <MetricKPI label="Signing Authority" value="nexus-vault-v1" colour="purple" animate={false} valueFontSize={20} />
       </div>
 
       {/* Chain Status Banner */}
@@ -144,7 +168,7 @@ export function AuditVaultPage() {
       {/* Records */}
       {loading ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {[1,2,3,4].map(i => <SkeletonCard key={i} height="72px" />)}
+          {[1,2,3,4,5,6].map(i => <SkeletonCard key={i} height="72px" />)}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -182,10 +206,14 @@ export function AuditVaultPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <FileDigit size={16} color={actionColor[rec.action_type] ?? "#3B82F6"} />
+                    {/* FIX 1: Always show hash — real hash or shimmer skeleton, never blank */}
                     {pending ? (
-                      <span className="hash-pending-shimmer" title="Hash computation in progress. Records are written before hashing completes. Refresh to update." />
+                      <span
+                        className="hash-pending-shimmer"
+                        title="Hash computation in progress. The vault service writes records before hashing completes. Refresh to update."
+                      />
                     ) : (
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--blue-400)" }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--cyan)" }}>
                         {truncHash(rec.payload_hash, 8, 8)}
                       </span>
                     )}
@@ -208,7 +236,7 @@ export function AuditVaultPage() {
                       <span style={{ color: "var(--text-dim)" }}>Event ID</span><span>{rec.event_id}</span>
                       <span style={{ color: "var(--text-dim)" }}>Hash</span>
                       <span style={{ wordBreak: "break-all" }}>
-                        {pending ? <span className="hash-pending-shimmer" /> : rec.payload_hash}
+                        {pending ? <span className="hash-pending-shimmer" title="Hash computation in progress. Refresh to update." /> : rec.payload_hash}
                       </span>
                       <span style={{ color: "var(--text-dim)" }}>Previous</span><span style={{ wordBreak: "break-all" }}>{rec.previous_hash}</span>
                       <span style={{ color: "var(--text-dim)" }}>Signed By</span><span>{rec.signed_by}</span>
@@ -220,6 +248,90 @@ export function AuditVaultPage() {
           })}
         </div>
       )}
+
+      {/* FIX 2B: "How the Audit Chain Works" explainer card */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="nexus-card"
+        style={{
+          marginTop: 24,
+          padding: "28px 32px",
+          background: "var(--bg-surface)",
+          border: "1px solid rgba(59,130,246,0.08)",
+          borderRadius: 16,
+        }}
+      >
+        <h3 style={{
+          fontSize: 16, fontWeight: 700, marginBottom: 20,
+          color: "var(--text-primary)",
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <ShieldCheck size={18} color="var(--blue-400)" />
+          How the Audit Chain Works
+        </h3>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 24,
+        }}>
+          {/* Column 1 */}
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+              background: "rgba(59,130,246,0.08)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <ScrollText size={20} color="var(--blue-400)" />
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
+                Every Decision Recorded
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)" }}>
+                Each AI decision processed by NEXUS is written to an immutable Firestore record with a SHA-256 hash.
+              </div>
+            </div>
+          </div>
+          {/* Column 2 */}
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+              background: "rgba(16,185,129,0.08)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Link2 size={20} color="var(--green)" />
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
+                Chain Linking
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)" }}>
+                Each record's previous_hash field contains the hash of the prior record, making tampering detectable.
+              </div>
+            </div>
+          </div>
+          {/* Column 3 */}
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+              background: "rgba(139,92,246,0.08)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <KeyRound size={20} color="var(--purple)" />
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>
+                KMS Signed
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.45)" }}>
+                Records are asymmetrically signed using Google Cloud KMS, providing cryptographic non-repudiation.
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

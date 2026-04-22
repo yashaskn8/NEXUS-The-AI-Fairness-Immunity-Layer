@@ -67,7 +67,7 @@ export function ModelDetailPage() {
   // Simulator state
   const [simFeatures, setSimFeatures] = useState({ years_exp: 6, gpa: 3.8, skills_score: 89, has_career_gap: 1 });
   const [simGender, setSimGender] = useState("female");
-  const [simResult, setSimResult] = useState<{ flip: boolean; original: string; counterfactual: string } | null>(null);
+  const [simResult, setSimResult] = useState<{ flip: boolean; original: string; counterfactual: string; timestamp: number } | null>(null);
   const [simRunning, setSimRunning] = useState(false);
 
   // Autopilot
@@ -101,24 +101,26 @@ export function ModelDetailPage() {
 
   const runSimulation = async () => {
     setSimRunning(true);
+    // Simulate network delay for realism
+    await new Promise(r => setTimeout(r, 800));
     try {
-      const res = await fetch("http://localhost:8082/simulate", {
+      await fetch("http://localhost:8082/simulate", {
         method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer nxs_demo_key" },
         body: JSON.stringify({ org_id: ORG_ID, model_id: displayModelId, features: { years_exp: simFeatures.years_exp, gpa: simFeatures.gpa, skills_score: simFeatures.skills_score / 100 }, reference_group: { gender: "M" }, counterfactual_groups: { gender: [simGender === "female" ? "F" : "NB"] } }),
       });
-      await res.json();
-      // Use logical defaults if API is missing/mocked
-      if (simGender === "male") {
-        setSimResult({ flip: false, original: "approved", counterfactual: "approved" });
-      } else {
-        setSimResult({ flip: true, original: "rejected", counterfactual: "approved" });
-      }
     } catch {
-      if (simGender === "male") {
-        setSimResult({ flip: false, original: "approved", counterfactual: "approved" });
-      } else {
-        setSimResult({ flip: true, original: "rejected", counterfactual: "approved" });
-      }
+      // API offline — expected for demo, fall through to synthetic results
+    }
+    // Produce gender-specific counterfactual results
+    if (simGender === "male") {
+      // Male is the privileged baseline — approved in both directions
+      setSimResult({ flip: false, original: "approved", counterfactual: "approved", timestamp: Date.now() });
+    } else if (simGender === "female") {
+      // Female candidate gets rejected; flipping to male yields approval → bias detected
+      setSimResult({ flip: true, original: "rejected", counterfactual: "approved", timestamp: Date.now() });
+    } else {
+      // Non-binary candidate also rejected; flipping to male yields approval → bias detected
+      setSimResult({ flip: true, original: "rejected", counterfactual: "approved", timestamp: Date.now() });
     }
     setSimRunning(false);
   };
@@ -187,7 +189,7 @@ export function ModelDetailPage() {
                       const isDI = METRIC_NAMES[mi] === "disparate_impact";
                       const ok = isDI ? val >= 0.8 : Math.abs(val) <= 0.1;
                       return (
-                        <div key={`${mi}-${ai}`} style={{
+                        <div key={`${mi}-${ai}`} className="heatmap-cell" style={{
                           textAlign: "center", padding: "6px 4px", borderRadius: 6, fontSize: 11,
                           fontFamily: "var(--font-mono)", fontWeight: 600,
                           background: ok ? "var(--green-subtle)" : "var(--red-subtle)",
@@ -381,7 +383,7 @@ export function ModelDetailPage() {
                       <label style={{ fontSize: 12, color: "var(--text-secondary)" }}>{key.replace(/_/g, " ")}</label>
                       <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--blue-400)" }}>{val}</span>
                     </div>
-                    <input type="range" min="0" max={key === "has_career_gap" ? 1 : 100} step={key === "gpa" ? 0.1 : 1}
+                    <input type="range" min="0" max={{ years_exp: 40, gpa: 4.0, skills_score: 100, has_career_gap: 1 }[key]} step={{ gpa: 0.1, has_career_gap: 1, years_exp: 1, skills_score: 1 }[key]}
                       value={val} onChange={e => setSimFeatures(prev => ({ ...prev, [key]: +e.target.value }))}
                       style={{ width: "100%", accentColor: "var(--blue-500)" }} />
                   </div>
@@ -390,51 +392,73 @@ export function ModelDetailPage() {
                   <label style={{ fontSize: 12, color: "var(--text-secondary)", display: "block", marginBottom: 6 }}>Protected Attribute</label>
                   <div style={{ display: "flex", gap: 4 }}>
                     {["female", "male", "nb"].map(g => (
-                      <button key={g} onClick={() => setSimGender(g)} style={{
+                      <button key={g} className="gender-btn" onClick={() => { setSimGender(g); setSimResult(null); }} style={{
                         flex: 1, padding: "8px 0", borderRadius: "var(--radius-md)", fontSize: 12, fontWeight: 600,
                         border: simGender === g ? "none" : "1px solid var(--border-subtle)",
                         background: simGender === g ? "var(--blue-500)" : "transparent",
-                        color: simGender === g ? "#fff" : "var(--text-secondary)", cursor: "pointer", transition: "all 0.15s",
+                        color: simGender === g ? "#fff" : "var(--text-secondary)", cursor: "pointer",
                       }}>
                         {g === "nb" ? "Non-Binary" : g.charAt(0).toUpperCase() + g.slice(1)}
                       </button>
                     ))}
                   </div>
                 </div>
-                <button className="nexus-btn" style={{ marginTop: 16, width: "100%", background: "linear-gradient(135deg, #2563EB, #7C3AED)" }} onClick={runSimulation} disabled={simRunning}>
+                <button className="nexus-btn nexus-btn-magnetic" style={{ marginTop: 16, width: "100%", background: "linear-gradient(135deg, #2563EB, #7C3AED)" }} onClick={runSimulation} disabled={simRunning}>
                   {simRunning ? "Running..." : "Run Simulation"}
                 </button>
               </div>
 
               <div className="nexus-card">
                 {!simResult ? (
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 24, padding: 32, minHeight: 300 }}>
-                    {/* Animated dual-candidate visualization */}
-                    <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
-                      {/* Candidate A — Female */}
-                      <div style={{ width: 120, padding: 16, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 12, textAlign: "center" }}>
-                        <div style={{ fontSize: 32 }}>👩</div>
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 8 }}>Same qualifications</div>
-                        <div style={{ marginTop: 8, padding: "4px 8px", background: "rgba(239,68,68,0.2)", borderRadius: 20, fontSize: 11, color: "#F87171" }}>REJECTED</div>
-                      </div>
-                      {/* VS divider */}
-                      <div style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: 24, color: "rgba(255,255,255,0.20)" }}>?</div>
-                        <div style={{ width: 1, height: 40, background: "rgba(59,130,246,0.3)", margin: "8px auto" }} />
-                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em" }}>NEXUS</div>
-                      </div>
-                      {/* Candidate B — Male */}
-                      <div style={{ width: 120, padding: 16, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)", borderRadius: 12, textAlign: "center" }}>
-                        <div style={{ fontSize: 32 }}>👨</div>
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 8 }}>Same qualifications</div>
-                        <div style={{ marginTop: 8, padding: "4px 8px", background: "rgba(16,185,129,0.2)", borderRadius: 20, fontSize: 11, color: "#34D399" }}>APPROVED</div>
-                      </div>
-                    </div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 20, padding: 32, minHeight: 300 }}>
+                    {/* Animated SVG dual-candidate visualization */}
+                    <svg viewBox="0 0 320 180" style={{ width: 320, height: 180 }}>
+                      <defs>
+                        <linearGradient id="scanBeam" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#3B82F6" stopOpacity="0" />
+                          <stop offset="50%" stopColor="#3B82F6" stopOpacity="0.4" />
+                          <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                        </linearGradient>
+                        <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+                      </defs>
+                      {/* Scanning beam */}
+                      <rect x="0" y="0" width="320" height="40" fill="url(#scanBeam)" opacity="0.6">
+                        <animateTransform attributeName="transform" type="translate" values="0,-40;0,200;0,-40" dur="3.5s" repeatCount="indefinite" />
+                      </rect>
+                      {/* Candidate A — Rejected */}
+                      <g style={{ animation: "node-breathe 3s ease-in-out infinite" }}>
+                        <rect x="20" y="30" width="100" height="120" rx="12" fill="rgba(239,68,68,0.06)" stroke="rgba(239,68,68,0.3)" strokeWidth="1.5" />
+                        <circle cx="70" cy="65" r="18" fill="rgba(239,68,68,0.12)" stroke="rgba(239,68,68,0.4)" strokeWidth="1" />
+                        <line x1="60" y1="60" x2="80" y2="70" stroke="#F87171" strokeWidth="1.5" strokeLinecap="round" />
+                        <line x1="80" y1="60" x2="60" y2="70" stroke="#F87171" strokeWidth="1.5" strokeLinecap="round" />
+                        <text x="70" y="98" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="8" fontFamily="Inter">Same qualifications</text>
+                        <rect x="40" y="108" width="60" height="20" rx="10" fill="rgba(239,68,68,0.15)" />
+                        <text x="70" y="122" textAnchor="middle" fill="#F87171" fontSize="9" fontWeight="700" fontFamily="Space Mono">REJECTED</text>
+                      </g>
+                      {/* NEXUS connector */}
+                      <g filter="url(#glow)">
+                        <line x1="130" y1="90" x2="190" y2="90" stroke="#3B82F6" strokeWidth="1" strokeDasharray="6 4" opacity="0.6">
+                          <animate attributeName="stroke-dashoffset" values="20;0" dur="1.5s" repeatCount="indefinite" />
+                        </line>
+                        <circle cx="160" cy="90" r="14" fill="rgba(59,130,246,0.1)" stroke="rgba(59,130,246,0.4)" strokeWidth="1" />
+                        <text x="160" y="86" textAnchor="middle" fill="#60A5FA" fontSize="6" fontWeight="700" fontFamily="Space Grotesk">NEXUS</text>
+                        <text x="160" y="96" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="7" fontFamily="Space Mono">?</text>
+                      </g>
+                      {/* Candidate B — Approved */}
+                      <g style={{ animation: "node-breathe 3s ease-in-out infinite 1.5s" }}>
+                        <rect x="200" y="30" width="100" height="120" rx="12" fill="rgba(16,185,129,0.06)" stroke="rgba(16,185,129,0.3)" strokeWidth="1.5" />
+                        <circle cx="250" cy="65" r="18" fill="rgba(16,185,129,0.12)" stroke="rgba(16,185,129,0.4)" strokeWidth="1" />
+                        <polyline points="242,65 248,71 258,59" fill="none" stroke="#34D399" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        <text x="250" y="98" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="8" fontFamily="Inter">Same qualifications</text>
+                        <rect x="220" y="108" width="60" height="20" rx="10" fill="rgba(16,185,129,0.15)" />
+                        <text x="250" y="122" textAnchor="middle" fill="#34D399" fontSize="9" fontWeight="700" fontFamily="Space Mono">APPROVED</text>
+                      </g>
+                    </svg>
                     {/* Instructional text */}
-                    <div style={{ textAlign: "center", maxWidth: 280 }}>
-                      <p style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.75)", fontFamily: "var(--font-display)" }}>Detect Discriminatory Outcomes</p>
-                      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.40)", marginTop: 8, lineHeight: 1.6 }}>
-                        Set feature values on the left, then run the simulation to see if NEXUS detects disparate treatment across different demographic groups.
+                    <div style={{ textAlign: "center", maxWidth: 300 }}>
+                      <p style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,0.80)", fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}>Detect Discriminatory Outcomes</p>
+                      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.40)", marginTop: 8, lineHeight: 1.7 }}>
+                        Configure candidate features, select a protected attribute, then run the simulation to reveal disparate treatment patterns.
                       </p>
                     </div>
                     {/* Scenario preset pills */}
@@ -444,9 +468,9 @@ export function ModelDetailPage() {
                         { label: "Senior experience penalty", features: { years_exp: 12, gpa: 3.5, skills_score: 82, has_career_gap: 0 }, gender: "female" },
                         { label: "High skills, career gap", features: { years_exp: 8, gpa: 3.9, skills_score: 91, has_career_gap: 1 }, gender: "female" },
                       ].map(preset => (
-                        <span key={preset.label}
+                        <span key={preset.label} className="preset-pill"
                           onClick={() => { setSimFeatures(preset.features); setSimGender(preset.gender); }}
-                          style={{ padding: "4px 12px", fontSize: 11, background: "rgba(59,130,246,0.10)", border: "1px solid rgba(59,130,246,0.20)", borderRadius: 20, color: "rgba(255,255,255,0.50)", cursor: "pointer", transition: "all 0.15s" }}
+                          style={{ padding: "5px 14px", fontSize: 11, background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.18)", borderRadius: 20, color: "rgba(255,255,255,0.50)" }}
                         >{preset.label}</span>
                       ))}
                     </div>
@@ -466,18 +490,26 @@ export function ModelDetailPage() {
                         <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 4 }}>Original ({simGender})</div>
                         <div style={{ fontSize: 24, fontWeight: 700, color: simResult.original === "rejected" ? "var(--red)" : "var(--green)", fontFamily: "var(--font-mono)" }}>{simResult.original.toUpperCase()}</div>
                       </div>
-                      <div style={{ padding: 20, background: "rgba(16,185,129,0.05)", borderRadius: 10, border: "1px solid rgba(16,185,129,0.2)", textAlign: "center" }}>
-                        <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 4 }}>Counterfactual (Male)</div>
-                        <div style={{ fontSize: 24, fontWeight: 700, color: "var(--green)", fontFamily: "var(--font-mono)" }}>APPROVED</div>
+                      <div style={{ padding: 20, background: simResult.counterfactual === "rejected" ? "rgba(239,68,68,0.05)" : "rgba(16,185,129,0.05)", borderRadius: 10, border: simResult.counterfactual === "rejected" ? "1px solid rgba(239,68,68,0.2)" : "1px solid rgba(16,185,129,0.2)", textAlign: "center" }}>
+                        <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 4 }}>Counterfactual ({simGender === "male" ? "female" : "male"})</div>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: simResult.counterfactual === "rejected" ? "var(--red)" : "var(--green)", fontFamily: "var(--font-mono)" }}>{simResult.counterfactual.toUpperCase()}</div>
                       </div>
                     </div>
                     <GeminiStreamPanel
+                      key={`sim-analysis-${simGender}-${simResult.timestamp}`}
                       trigger={true}
                       prompt={simGender === "male" 
                         ? `Explain in 2 sentences that because the candidate is male, they are approved, and no gender bias penalty was applied, resulting in no flip.` 
                         : `Explain in 2-3 sentences why changing gender from ${simGender} to male flips the hiring decision from rejected to approved, indicating causal gender bias in the model.`}
                       title="NEXUS AI Analysis"
                       loadingText={simGender === "male" ? "Verifying baseline outcome..." : "Analysing disparate treatment pattern..."}
+                      fallbackText={
+                        simGender === "male"
+                          ? "No disparate treatment detected. The male candidate was approved under baseline conditions, and the counterfactual female profile also received approval. The career_gap_years feature (SHAP: +0.02) did not trigger a gender-correlated penalty for this group. The model's decision boundary remains consistent for the privileged demographic, confirming no reverse-discrimination pattern."
+                          : simGender === "female"
+                          ? "NEXUS detected a counterfactual flip: the female candidate was rejected (score: 0.38) while the identical male profile was approved (score: 0.71). The primary driver is career_gap_years, which contributes a SHAP penalty of −0.31 for female candidates versus +0.02 for males — a 0.33 attribution gap. This constitutes causal gender discrimination via proxy feature encoding, violating the EEOC four-fifths threshold (DI = 0.67 < 0.80)."
+                          : "NEXUS detected a counterfactual flip: the non-binary candidate was rejected (score: 0.41) while the identical male profile was approved (score: 0.71). The intersectional penalty is driven by career_gap_years (SHAP: −0.27) and a compounding skills_score underweighting (SHAP: 0.18 vs 0.24 for males). Non-binary candidates face a 0.30 cumulative SHAP disadvantage, indicating systemic bias in the model's learned feature interactions."
+                      }
                     />
 
                     {simResult.flip && (
@@ -490,11 +522,16 @@ export function ModelDetailPage() {
                       <ResponsiveContainer width="100%" height={200}>
                         <BarChart
                           layout="vertical"
-                          data={[
-                            { name: "career_gap_years", male: 0.02, female: -0.31 },
-                            { name: "years_exp", male: 0.28, female: 0.26 },
-                            { name: "skills_score", male: 0.24, female: 0.22 },
-                            { name: "gpa", male: 0.18, female: 0.16 },
+                          data={simGender === "female" ? [
+                            { name: "career_gap_years", male: 0.02, other: -0.31 },
+                            { name: "years_exp", male: 0.28, other: 0.26 },
+                            { name: "skills_score", male: 0.24, other: 0.22 },
+                            { name: "gpa", male: 0.18, other: 0.16 },
+                          ] : [
+                            { name: "career_gap_years", male: 0.02, other: -0.27 },
+                            { name: "skills_score", male: 0.24, other: 0.18 },
+                            { name: "years_exp", male: 0.28, other: 0.23 },
+                            { name: "gpa", male: 0.18, other: 0.14 },
                           ]}
                           margin={{ top: 0, right: 20, left: 20, bottom: 0 }}
                         >
@@ -505,12 +542,14 @@ export function ModelDetailPage() {
                           <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
                           <ReferenceLine x={0} stroke="rgba(255,255,255,0.2)" />
                           <Bar dataKey="male" name="Male" fill="#3B82F6" fillOpacity={0.7} radius={[0, 4, 4, 0]} barSize={12} />
-                          <Bar dataKey="female" name={simGender === "female" ? "Female" : "Non-Binary"} fill="#EF4444" fillOpacity={0.7} radius={[0, 4, 4, 0]} barSize={12} />
+                          <Bar dataKey="other" name={simGender === "female" ? "Female" : "Non-Binary"} fill={simGender === "female" ? "#EF4444" : "#F59E0B"} fillOpacity={0.7} radius={[0, 4, 4, 0]} barSize={12} />
                         </BarChart>
                       </ResponsiveContainer>
                       
                         <div style={{ marginTop: 12, fontSize: 12, color: "var(--amber)", background: "rgba(245, 158, 11, 0.1)", padding: "10px 14px", borderRadius: 8, borderLeft: "2px solid var(--amber)" }}>
-                          <strong>career_gap_years</strong> contributes -0.31 for {simGender} candidates vs +0.02 for male candidates — a 0.33 SHAP gap.
+                          {simGender === "female" 
+                            ? <><strong>career_gap_years</strong> contributes −0.31 for female candidates vs +0.02 for male candidates — a 0.33 SHAP gap.</>
+                            : <><strong>career_gap_years</strong> contributes −0.27 and <strong>skills_score</strong> is underweighted (0.18 vs 0.24) for non-binary candidates — a 0.30 cumulative SHAP disadvantage.</>}
                         </div>
                       </div>
                     )}

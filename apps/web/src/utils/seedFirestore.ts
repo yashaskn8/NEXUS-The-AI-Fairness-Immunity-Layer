@@ -46,10 +46,24 @@ export async function seedFirestoreIfEmpty(orgId: string): Promise<void> {
       { model_id: "healthcare-v1", domain: "healthcare", org_id: orgId, severity: "ok", last_event_ms: now - 90000 },
     ];
 
+    // Deterministic 64-char hex hash generator (stable across refreshes)
+    function generateFakeHash(seed: number): string {
+      return Array.from({ length: 8 }, (_, i) =>
+        ((seed * (i + 1) * 0xDEADBEEF) >>> 0).toString(16).padStart(8, '0')
+      ).join('');
+    }
+
     const vaultRecords = [
-      { record_id: "rec-001", event_id: intercepts[0]!.model_id, org_id: orgId, action_type: "intercept", payload_hash: "a3f8b2c1d4e5f6789012345678901234567890abcdef1234567890abcdef1234", previous_hash: "0000000000000000000000000000000000000000000000000000000000000000", signed_by: "nexus-vault-v1", timestamp_ms: now - 120000 },
-      { record_id: "rec-002", event_id: intercepts[1]!.model_id, org_id: orgId, action_type: "intercept", payload_hash: "b4c9d3e2f5a6b7890123456789012345678901bcdef2345678901bcdef23456", previous_hash: "a3f8b2c1d4e5f6789012345678901234567890abcdef1234567890abcdef1234", signed_by: "nexus-vault-v1", timestamp_ms: now - 240000 },
-      { record_id: "rec-003", event_id: intercepts[2]!.model_id, org_id: orgId, action_type: "metric", payload_hash: "c5d0e4f3a6b7c8901234567890123456789012cdef3456789012cdef345678", previous_hash: "b4c9d3e2f5a6b7890123456789012345678901bcdef2345678901bcdef23456", signed_by: "nexus-vault-v1", timestamp_ms: now - 360000 },
+      { record_id: "rec-001", event_id: "hiring-v1",      org_id: orgId, action_type: "intercept",   payload_hash: generateFakeHash(1),  previous_hash: "0".repeat(64),       signed_by: "nexus-vault-v1", timestamp_ms: now - 120000 },
+      { record_id: "rec-002", event_id: "hiring-v1",      org_id: orgId, action_type: "intercept",   payload_hash: generateFakeHash(2),  previous_hash: generateFakeHash(1),  signed_by: "nexus-vault-v1", timestamp_ms: now - 240000 },
+      { record_id: "rec-003", event_id: "credit-v2",      org_id: orgId, action_type: "metric",      payload_hash: generateFakeHash(3),  previous_hash: generateFakeHash(2),  signed_by: "nexus-vault-v1", timestamp_ms: now - 360000 },
+      { record_id: "rec-004", event_id: "hiring-v1",      org_id: orgId, action_type: "intercept",   payload_hash: generateFakeHash(4),  previous_hash: generateFakeHash(3),  signed_by: "nexus-vault-v1", timestamp_ms: now - 480000 },
+      { record_id: "rec-005", event_id: "healthcare-v1",  org_id: orgId, action_type: "remediation", payload_hash: generateFakeHash(5),  previous_hash: generateFakeHash(4),  signed_by: "nexus-vault-v1", timestamp_ms: now - 600000 },
+      { record_id: "rec-006", event_id: "credit-v2",      org_id: orgId, action_type: "metric",      payload_hash: generateFakeHash(6),  previous_hash: generateFakeHash(5),  signed_by: "nexus-vault-v1", timestamp_ms: now - 720000 },
+      { record_id: "rec-007", event_id: "hiring-v1",      org_id: orgId, action_type: "intercept",   payload_hash: generateFakeHash(7),  previous_hash: generateFakeHash(6),  signed_by: "nexus-vault-v1", timestamp_ms: now - 840000 },
+      { record_id: "rec-008", event_id: "credit-v2",      org_id: orgId, action_type: "decision",    payload_hash: generateFakeHash(8),  previous_hash: generateFakeHash(7),  signed_by: "nexus-vault-v1", timestamp_ms: now - 960000 },
+      { record_id: "rec-009", event_id: "healthcare-v1",  org_id: orgId, action_type: "metric",      payload_hash: generateFakeHash(9),  previous_hash: generateFakeHash(8),  signed_by: "nexus-vault-v1", timestamp_ms: now - 1080000 },
+      { record_id: "rec-010", event_id: "hiring-v1",      org_id: orgId, action_type: "intercept",   payload_hash: generateFakeHash(10), previous_hash: generateFakeHash(9),  signed_by: "nexus-vault-v1", timestamp_ms: now - 1200000 },
     ];
 
     await Promise.all([

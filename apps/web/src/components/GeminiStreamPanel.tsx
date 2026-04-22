@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 
 interface GeminiStreamPanelProps {
@@ -6,25 +6,36 @@ interface GeminiStreamPanelProps {
   trigger:  boolean;
   title?:   string;
   loadingText?: string;
+  fallbackText?: string;
 }
 
-export function GeminiStreamPanel({ prompt, trigger, title = "AI Analysis", loadingText = "Analysing data..." }: GeminiStreamPanelProps) {
+const DEFAULT_FALLBACK = "Based on the current fairness metrics analysis, the model shows statistically significant disparate impact against female applicants (DI = 0.67, below the EEOC four-fifths threshold of 0.80). The causal engine has identified career_gap_years as a proxy variable for gender with mutual information of 0.52. NEXUS has activated Threshold Autopilot to dynamically adjust per-group decision thresholds, which is projected to raise the Disparate Impact ratio to 0.84, restoring compliance.";
+
+export function GeminiStreamPanel({ prompt, trigger, title = "AI Analysis", loadingText = "Analysing data...", fallbackText }: GeminiStreamPanelProps) {
   const [text, setText] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [done, setDone] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-  const hasRun = useRef(false);
 
   useEffect(() => {
-    if (!trigger || hasRun.current) return;
-    hasRun.current = true;
+    if (!trigger) return;
+
+    // Reset state for fresh run
+    setText("");
+    setStreaming(false);
+    setDone(false);
+    setHasStarted(false);
 
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    let cancelled = false;
     
+    const fakeResponse = fallbackText || DEFAULT_FALLBACK;
+
     // 8-second fallback timeout
     const fallbackTimer = setTimeout(() => {
+      if (cancelled) return;
       setHasStarted(true);
-      setText("Based on the current fairness metrics analysis, the model shows statistically significant disparate impact against female applicants (DI = 0.67, below the EEOC four-fifths threshold of 0.80). The causal engine has identified career_gap_years as a proxy variable for gender with mutual information of 0.52. NEXUS has activated Threshold Autopilot to dynamically adjust per-group decision thresholds, which is projected to raise the Disparate Impact ratio to 0.84, restoring compliance.");
+      setText(fakeResponse);
       setStreaming(false);
       setDone(true);
     }, 8000);
@@ -32,30 +43,39 @@ export function GeminiStreamPanel({ prompt, trigger, title = "AI Analysis", load
     if (!apiKey) {
       // Fallback: simulate a streamed response
       setStreaming(true);
-      const fakeResponse = "Based on the current fairness metrics analysis, the model shows statistically significant disparate impact against female applicants (DI = 0.67, below the EEOC four-fifths threshold of 0.80). The causal engine has identified career_gap_years as a proxy variable for gender with mutual information of 0.52. NEXUS has activated Threshold Autopilot to dynamically adjust per-group decision thresholds, which is projected to raise the Disparate Impact ratio to 0.84, restoring compliance.";
       let idx = 0;
-      const interval = setInterval(() => {
-        if (idx === 0) {
-          setHasStarted(true);
-          clearTimeout(fallbackTimer);
-        }
-        if (idx < fakeResponse.length) {
-          setText(fakeResponse.slice(0, idx + 1));
-          idx++;
-        } else {
-          clearInterval(interval);
-          setStreaming(false);
-          setDone(true);
-        }
-      }, 15);
+      // Small initial delay so React can paint the loading state first
+      const startDelay = setTimeout(() => {
+        if (cancelled) return;
+        const interval = setInterval(() => {
+          if (cancelled) { clearInterval(interval); return; }
+          if (idx === 0) {
+            setHasStarted(true);
+            clearTimeout(fallbackTimer);
+          }
+          if (idx < fakeResponse.length) {
+            setText(fakeResponse.slice(0, idx + 1));
+            idx++;
+          } else {
+            clearInterval(interval);
+            setStreaming(false);
+            setDone(true);
+          }
+        }, 15);
+        // Store interval id for cleanup
+        cleanupInterval = interval;
+      }, 50);
+
+      let cleanupInterval: ReturnType<typeof setInterval> | null = null;
       return () => {
-        clearInterval(interval);
+        cancelled = true;
         clearTimeout(fallbackTimer);
+        clearTimeout(startDelay);
+        if (cleanupInterval) clearInterval(cleanupInterval);
       };
     }
 
     // Real Gemini API streaming
-    let isCancelled = false;
     (async () => {
       setStreaming(true);
       try {
@@ -65,31 +85,29 @@ export function GeminiStreamPanel({ prompt, trigger, title = "AI Analysis", load
         const result = await model.generateContentStream(prompt);
         let accumulated = "";
         for await (const chunk of result.stream) {
-          if (isCancelled) break;
-          if (!hasStarted) {
-            setHasStarted(true);
-            clearTimeout(fallbackTimer);
-          }
+          if (cancelled) break;
+          setHasStarted(true);
+          clearTimeout(fallbackTimer);
           accumulated += chunk.text();
           setText(accumulated);
         }
       } catch {
-        if (!isCancelled) {
+        if (!cancelled) {
           setHasStarted(true);
           clearTimeout(fallbackTimer);
           setText("AI analysis is temporarily unavailable. The fairness engine continues to operate with threshold-based corrections.");
         }
       }
-      if (!isCancelled) {
+      if (!cancelled) {
         setStreaming(false);
         setDone(true);
       }
     })();
     return () => {
-      isCancelled = true;
+      cancelled = true;
       clearTimeout(fallbackTimer);
     };
-  }, [trigger, prompt, hasStarted]);
+  }, [trigger, prompt]);
 
   if (!trigger && !text) return null;
 
