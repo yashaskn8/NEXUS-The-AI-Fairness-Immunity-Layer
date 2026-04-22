@@ -80,11 +80,11 @@ export function LandingPage() {
       <motion.section style={{ y: y1, opacity: opacity1, position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", textAlign: "center", padding: "0 20px" }}>
         {/* Animated sphere rings */}
         <motion.div animate={{ rotate: 360 }} transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-          style={{ position: "absolute", width: 500, height: 500, borderRadius: "50%", border: "1px solid rgba(59,130,246,0.08)", opacity: 0.3 }} />
+          style={{ position: "absolute", width: 500, height: 500, borderRadius: "50%", border: "1px solid rgba(59,130,246,0.08)", opacity: 0.3, pointerEvents: "none" }} />
         <motion.div animate={{ rotate: -360 }} transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
-          style={{ position: "absolute", width: 400, height: 400, borderRadius: "50%", border: "1px solid rgba(139,92,246,0.08)", opacity: 0.3 }} />
+          style={{ position: "absolute", width: 400, height: 400, borderRadius: "50%", border: "1px solid rgba(139,92,246,0.08)", opacity: 0.3, pointerEvents: "none" }} />
         <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(59,130,246,0.10), transparent 60%)" }} />
+          style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(59,130,246,0.10), transparent 60%)", pointerEvents: "none" }} />
 
         {/* Shield icon with ring pulses */}
         <motion.div
@@ -126,7 +126,7 @@ export function LandingPage() {
         </motion.p>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-          style={{ display: "flex", gap: 16 }}>
+          style={{ display: "flex", gap: 16, position: "relative", zIndex: 10 }}>
           <Link to="/command-centre" className="nexus-btn" style={{ padding: "14px 28px", fontSize: 16 }}>
             Enter Command Centre <ArrowRight size={16} style={{ marginLeft: 4 }} />
           </Link>

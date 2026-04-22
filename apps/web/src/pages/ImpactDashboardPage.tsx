@@ -66,7 +66,7 @@ export function ImpactDashboardPage() {
         <Heart size={28} color="var(--red-bright)" />
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 700 }}>Impact Dashboard</h1>
-          <p style={{ color: "var(--text-dim)", fontSize: 14 }}>Real lives protected by NEXUS fairness interventions</p>
+          <p style={{ color: "var(--text-dim)", fontSize: 14 }}>Lives protected in demo environment · Projected impact at scale.</p>
         </div>
       </div>
 

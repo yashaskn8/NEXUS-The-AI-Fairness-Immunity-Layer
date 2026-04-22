@@ -1,10 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { auth } from "../firebase";
 import {
-  Zap, BarChart2, FlaskConical, TrendingUp, Heart,
+  Zap, FlaskConical, TrendingUp, Heart,
   List, Lock, FileText, Globe, Settings,
   LogOut, Menu, X
 } from "lucide-react";
@@ -14,7 +14,6 @@ const CountUp = (reactCountUp as any).default || reactCountUp;
 
 const navItems = [
   { path: "/command-centre", label: "Command Centre", icon: Zap },
-  { path: "/models/overview", label: "Models", icon: BarChart2 },
   { path: "/simulator",      label: "Simulator", icon: FlaskConical },
   { path: "/forecast",       label: "Forecast", icon: TrendingUp },
   { path: "/impact",         label: "Impact", icon: Heart },
@@ -34,7 +33,14 @@ const services = [
 ];
 
 export function DashboardLayout() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    const stored = localStorage.getItem('nexus_sidebar_collapsed');
+    return stored === null ? false : stored === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('nexus_sidebar_collapsed', String(collapsed));
+  }, [collapsed]);
   const navigate = useNavigate();
   const location = useLocation();
   const user = auth.currentUser;

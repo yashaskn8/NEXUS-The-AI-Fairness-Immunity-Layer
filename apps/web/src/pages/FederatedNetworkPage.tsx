@@ -1,6 +1,15 @@
 import { motion } from "framer-motion";
 import { Globe, Shield } from "lucide-react";
 import { MetricKPI } from "../components/MetricKPI";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer, Cell } from "recharts";
+
+const budgetData = [
+  { org: "FairView",  epsilon: 0.42 },
+  { org: "EquiLend",  epsilon: 0.38 },
+  { org: "CreditSAP", epsilon: 0.51 },
+  { org: "InsureRgt", epsilon: 0.29 },
+  { org: "HealthAI",  epsilon: 0.44 },
+];
 
 
 const nodes = [
@@ -28,7 +37,7 @@ export function FederatedNetworkPage() {
         <MetricKPI label="Participating Orgs" value={35} colour="blue" />
         <MetricKPI label="Completed Rounds" value={142} colour="green" />
         <MetricKPI label="Avg DI Improvement" value={8.4} unit="%" colour="cyan" decimals={1} />
-        <MetricKPI label="ε Budget Remaining" value={3.2} colour="purple" decimals={1} />
+        <MetricKPI label={<><span style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>ε</span> BUDGET REMAINING</>} value={3.2} colour="purple" decimals={1} />
       </div>
 
       {/* Map + Nodes */}
@@ -61,10 +70,25 @@ export function FederatedNetworkPage() {
                 <ellipse key={r} cx="400" cy="200" rx={r * 2} ry={r} fill="none" stroke={`rgba(6,182,212,${0.06 - i * 0.015})`} strokeWidth="1" />
               ))}
               {/* Connection lines */}
-              {nodes.map((node) => (
-                <line key={`line-${node.id}`} x1={node.x} y1={node.y} x2="400" y2="200" stroke="rgba(6,182,212,0.12)" strokeWidth="1" strokeDasharray="4 4">
-                  <animate attributeName="stroke-dashoffset" values="0;-8" dur="2s" repeatCount="indefinite" />
-                </line>
+              <style>{`
+                @keyframes flow-to-hub {
+                  from { stroke-dashoffset: 60; }
+                  to { stroke-dashoffset: 0; }
+                }
+              `}</style>
+              {nodes.map((node, i) => (
+                <line 
+                  key={`line-${node.id}`} 
+                  x1={node.x} y1={node.y} 
+                  x2="400" y2="200" 
+                  stroke={node.status === 'syncing' ? 'rgba(245,158,11,0.30)' : 'rgba(6,182,212,0.35)'} 
+                  strokeWidth={1} 
+                  strokeDasharray="4 8"
+                  style={{
+                    animation: `flow-to-hub 2s linear infinite`,
+                    animationDelay: `${i * 0.3}s`
+                  }}
+                />
               ))}
               {/* Hub */}
               <circle cx="400" cy="200" r="40" fill="url(#hubGlow)" />
@@ -121,6 +145,26 @@ export function FederatedNetworkPage() {
               </div>
             </motion.div>
           ))}
+
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, fontFamily: "var(--font-display)", marginBottom: 8 }}>Privacy Budget Usage — Current Round</div>
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart layout="vertical" data={budgetData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                <XAxis type="number" domain={[0, 1.2]} tick={{ fontSize: 10, fill: "#64748B" }} axisLine={false} tickLine={false} />
+                <YAxis dataKey="org" type="category" tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} width={60} />
+                <Tooltip contentStyle={{ background: "#0A1628", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 8, fontSize: 11 }} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
+                <ReferenceLine x={1.0} stroke="rgba(239,68,68,0.5)" strokeDasharray="3 3" label={{ value: "Round limit", fill: "#EF4444", fontSize: 10, position: "insideTopLeft" }} />
+                <Bar dataKey="epsilon" barSize={12} radius={[0, 4, 4, 0]}>
+                  {budgetData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.epsilon > 0.8 ? "var(--red)" : entry.epsilon > 0.5 ? "var(--amber)" : "var(--green)"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 8 }}>
+              All organisations within round budget limit (<span style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>ε</span> &lt; 1.0). Cumulative budget remaining: 3.2 <span style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>ε</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,8 +1,9 @@
+import type { ReactNode } from "react";
 import reactCountUp from "react-countup";
 const CountUp = (reactCountUp as any).default || reactCountUp;
 
 interface MetricKPIProps {
-  label:       string;
+  label:       ReactNode;
   value:       number | string;
   unit?:       string;
   trend?:      "up" | "down" | "neutral";
