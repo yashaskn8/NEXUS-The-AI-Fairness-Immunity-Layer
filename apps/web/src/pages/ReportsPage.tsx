@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FileText, Download, Clock, Shield, BarChart3, AlertTriangle, Scale, CheckCircle } from "lucide-react";
 
 const mockReports = [
-  { id: "rpt-1", title: "Q1 2026 Fairness Audit — Hiring Models", type: "compliance", generated: Date.now() - 86400000, pages: 24, status: "complete", icon: Shield },
-  { id: "rpt-2", title: "Disparate Impact Analysis — Credit Scoring", type: "analysis", generated: Date.now() - 172800000, pages: 18, status: "complete", icon: BarChart3 },
-  { id: "rpt-3", title: "Regulatory Compliance — EU AI Act", type: "regulatory", generated: Date.now() - 259200000, pages: 32, status: "complete", icon: Scale },
-  { id: "rpt-4", title: "Omega Adversarial Stress Test Report", type: "stress_test", generated: Date.now() - 345600000, pages: 15, status: "complete", icon: AlertTriangle },
-  { id: "rpt-5", title: "NYC Local Law 144 AEDT Annual Audit", type: "compliance", generated: Date.now() - 432000000, pages: 28, status: "complete", icon: CheckCircle },
-  { id: "rpt-6", title: "Bias Drift Forecast — Healthcare Triage", type: "analysis", generated: Date.now() - 518400000, pages: 12, status: "complete", icon: BarChart3 },
+  { id: "rpt-1", title: "Q1 2026 Fairness Audit — Hiring Models", type: "compliance", generated: Date.now() - 86400000, pages: 1, status: "complete", icon: Shield },
+  { id: "rpt-2", title: "Disparate Impact Analysis — Credit Scoring", type: "analysis", generated: Date.now() - 172800000, pages: 1, status: "complete", icon: BarChart3 },
+  { id: "rpt-3", title: "Regulatory Compliance — EU AI Act", type: "regulatory", generated: Date.now() - 259200000, pages: 1, status: "complete", icon: Scale },
+  { id: "rpt-4", title: "Omega Adversarial Stress Test Report", type: "stress_test", generated: Date.now() - 345600000, pages: 1, status: "complete", icon: AlertTriangle },
+  { id: "rpt-5", title: "NYC Local Law 144 AEDT Annual Audit", type: "compliance", generated: Date.now() - 432000000, pages: 1, status: "complete", icon: CheckCircle },
+  { id: "rpt-6", title: "Bias Drift Forecast — Healthcare Triage", type: "analysis", generated: Date.now() - 518400000, pages: 1, status: "complete", icon: BarChart3 },
 ];
 
 const typeConfig: Record<string, { color: string; bg: string }> = {
@@ -36,14 +36,14 @@ export function ReportsPage() {
     if (!(window as any).jspdf) {
       const script = document.createElement("script");
       script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-      script.onload = () => generatePDF(report, e);
+      script.onload = () => generatePDF(report);
       document.body.appendChild(script);
     } else {
-      generatePDF(report, e);
+      generatePDF(report);
     }
   };
 
-  const generatePDF = (report: any, e: React.MouseEvent) => {
+  const generatePDF = (report: any) => {
     // @ts-ignore
     const doc = new window.jspdf.jsPDF();
       const dateStr = new Date(report.generated).toLocaleString();
